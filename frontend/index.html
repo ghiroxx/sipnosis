@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SipnoSis - L'oracolo nella tua tazza. Interpreta simbolicamente macchie di caffè e tè." />
+  <meta name="theme-color" content="#1a1a1a" />
+  <title>SipnoSis — L'Oracolo nella Tua Tazza</title>
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #2a2414 0%, #111 45%, #050505 100%);
+      color: #e6d3a3;
+      font-family: Georgia, 'Times New Roman', serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    main {
+      width: min(920px, 100%);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 28px;
+      padding: clamp(24px, 5vw, 56px);
+      background: rgba(0, 0, 0, 0.45);
+      box-shadow: 0 0 70px rgba(212, 175, 55, 0.14);
+      text-align: center;
+    }
+    .sigil {
+      width: 150px;
+      height: 150px;
+      border: 3px solid #d4af37;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 28px;
+      font-size: 64px;
+      box-shadow: 0 0 32px rgba(212, 175, 55, 0.3), inset 0 0 30px rgba(212, 175, 55, 0.08);
+    }
+    h1 {
+      color: #d4af37;
+      font-size: clamp(2.3rem, 7vw, 4.6rem);
+      line-height: 0.95;
+      margin: 0 0 16px;
+      letter-spacing: -0.04em;
+    }
+    .subtitle {
+      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+      line-height: 1.55;
+      max-width: 720px;
+      margin: 0 auto 34px;
+    }
+    .panel {
+      display: grid;
+      gap: 18px;
+      max-width: 620px;
+      margin: 0 auto;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(212, 175, 55, 0.22);
+      border-radius: 22px;
+      padding: 22px;
+    }
+    label { color: #d4af37; font-weight: bold; }
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      background: rgba(0, 0, 0, 0.55);
+      color: #f4e3b2;
+      padding: 13px 14px;
+      font: inherit;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    button {
+      cursor: pointer;
+      background: linear-gradient(135deg, #d4af37, #f0d878);
+      color: #111;
+      font-weight: bold;
+      border: none;
+      margin-top: 6px;
+    }
+    button:hover { filter: brightness(1.07); }
+    #response {
+      display: none;
+      margin-top: 26px;
+      padding: 22px;
+      border-radius: 20px;
+      border: 1px solid rgba(212, 175, 55, 0.28);
+      background: rgba(212, 175, 55, 0.08);
+      line-height: 1.6;
+    }
+    .small {
+      margin-top: 26px;
+      color: rgba(230, 211, 163, 0.76);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="sigil" aria-hidden="true">☕</div>
+    <h1>SipnoSis</h1>
+    <p class="subtitle">
+      L'oracolo nella tua tazza. Carica una macchia di caffè o tè, scegli un intento e ricevi una lettura simbolica.
+    </p>
+
+    <section class="panel" aria-label="Richiesta oracolare">
+      <label for="image">Immagine della macchia</label>
+      <input id="image" type="file" accept="image/*" />
+
+      <label for="intent">Intento</label>
+      <select id="intent">
+        <option value="direzione">Direzione</option>
+        <option value="protezione">Protezione</option>
+        <option value="abbondanza">Abbondanza</option>
+        <option value="relazione">Relazione</option>
+        <option value="trasformazione">Trasformazione</option>
+      </select>
+
+      <label for="question">Domanda o frase rituale</label>
+      <textarea id="question" placeholder="Scrivi qui ciò che vuoi chiedere alla tazza..."></textarea>
+
+      <button type="button" onclick="readOracle()">Ricevi il responso</button>
+    </section>
+
+    <article id="response"></article>
+
+    <p class="small">
+      Versione stabile statica. Nessun token o segreto è presente nel browser. Backend AI da collegare nello step successivo.
+    </p>
+  </main>
+
+  <script>
+    const readings = {
+      direzione: 'La forma indica una soglia: non forzare il passaggio, attraversalo con precisione. Il prossimo gesto deve essere piccolo, concreto, verificabile.',
+      protezione: 'Il bordo della macchia agisce come cerchio. Riduci dispersione, conserva energia, proteggi ciò che è ancora in nascita.',
+      abbondanza: 'Il segno si apre verso l’esterno. L’abbondanza qui non è accumulo: è flusso ordinato, scambio e ritorno.',
+      relazione: 'Due correnti si avvicinano senza fondersi del tutto. Serve chiarezza: ciò che non viene detto crea più peso di ciò che viene detto.',
+      trasformazione: 'La macchia non è rottura ma mutazione. Lascia cadere una forma vecchia prima di chiedere alla nuova di apparire.'
+    };
+
+    function readOracle() {
+      const file = document.getElementById('image').files[0];
+      const intent = document.getElementById('intent').value;
+      const question = document.getElementById('question').value.trim();
+      const response = document.getElementById('response');
+
+      if (!file) {
+        response.style.display = 'block';
+        response.innerHTML = '<strong>Prima scegli un’immagine.</strong><br>La tazza deve lasciare un’impronta visibile.';
+        return;
+      }
+
+      const seed = (file.name.length + file.size + intent.length + question.length) % 5;
+      const symbols = ['ankh', 'spirale', 'soglia', 'occhio', 'ruota'];
+      response.style.display = 'block';
+      response.innerHTML = `
+        <strong>Simbolo emerso:</strong> ${symbols[seed]}<br><br>
+        <strong>Intento:</strong> ${intent}<br><br>
+        ${readings[intent]}
+        ${question ? `<br><br><em>Frase ascoltata:</em> “${escapeHtml(question)}”` : ''}
+      `;
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>'"]/g, function (char) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char];
+      });
+    }
+  </script>
+</body>
+</html>
