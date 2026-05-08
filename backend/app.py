@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -6,6 +7,7 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
 from oracle_engine import generate_oracle
+from vision_oracle import analyze_stain_image
 
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
@@ -38,9 +40,23 @@ def oracle():
 
     oracle_result = generate_oracle(intent, filename, question)
 
+    vision_result = analyze_stain_image(filepath, intent, question)
+
+    parsed_vision = None
+
+    if vision_result.get("enabled") and vision_result.get("content"):
+        try:
+            parsed_vision = json.loads(vision_result["content"])
+        except Exception:
+            parsed_vision = {
+                "raw": vision_result["content"]
+            }
+
     return jsonify({
         "success": True,
         "oracle": oracle_result,
+        "vision": parsed_vision,
+        "vision_enabled": vision_result.get("enabled", False),
         "image": filename,
     })
 
