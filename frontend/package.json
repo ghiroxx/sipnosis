@@ -1,0 +1,10 @@
+{
+  "name": "sipnosis-static-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "build": "mkdir -p dist && cp index.html dist/index.html",
+    "start": "python3 -m http.server 3000"
+  }
+}
