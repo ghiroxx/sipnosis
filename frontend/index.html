@@ -86,7 +86,8 @@
       border: none;
       margin-top: 6px;
     }
-    button:hover { filter: brightness(1.07); }
+    button:disabled { opacity: 0.58; cursor: wait; }
+    button:hover:not(:disabled) { filter: brightness(1.07); }
     #response {
       display: none;
       margin-top: 26px;
@@ -95,11 +96,18 @@
       border: 1px solid rgba(212, 175, 55, 0.28);
       background: rgba(212, 175, 55, 0.08);
       line-height: 1.6;
+      text-align: left;
     }
     .small {
       margin-top: 26px;
       color: rgba(230, 211, 163, 0.76);
       font-size: 0.92rem;
+    }
+    .status {
+      display: inline-block;
+      margin-top: 10px;
+      color: rgba(230, 211, 163, 0.78);
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -127,17 +135,22 @@
       <label for="question">Domanda o frase rituale</label>
       <textarea id="question" placeholder="Scrivi qui ciò che vuoi chiedere alla tazza..."></textarea>
 
-      <button type="button" onclick="readOracle()">Ricevi il responso</button>
+      <button id="oracleButton" type="button" onclick="readOracle()">Ricevi il responso</button>
+      <span id="status" class="status"></span>
     </section>
 
     <article id="response"></article>
 
     <p class="small">
-      Versione stabile statica. Nessun token o segreto è presente nel browser. Backend AI da collegare nello step successivo.
+      Versione stabile con fallback. Quando il backend è configurato, la lettura passa tramite API; altrimenti resta attiva la lettura locale.
     </p>
   </main>
 
   <script>
+    // Set this after deploying the Flask backend, for example:
+    // const BACKEND_URL = 'https://sipnosis-backend.onrender.com';
+    const BACKEND_URL = '';
+
     const readings = {
       direzione: 'La forma indica una soglia: non forzare il passaggio, attraversalo con precisione. Il prossimo gesto deve essere piccolo, concreto, verificabile.',
       protezione: 'Il bordo della macchia agisce come cerchio. Riduci dispersione, conserva energia, proteggi ciò che è ancora in nascita.',
@@ -146,31 +159,87 @@
       trasformazione: 'La macchia non è rottura ma mutazione. Lascia cadere una forma vecchia prima di chiedere alla nuova di apparire.'
     };
 
-    function readOracle() {
+    async function readOracle() {
       const file = document.getElementById('image').files[0];
       const intent = document.getElementById('intent').value;
       const question = document.getElementById('question').value.trim();
       const response = document.getElementById('response');
+      const button = document.getElementById('oracleButton');
+      const status = document.getElementById('status');
 
       if (!file) {
-        response.style.display = 'block';
-        response.innerHTML = '<strong>Prima scegli un’immagine.</strong><br>La tazza deve lasciare un’impronta visibile.';
+        showResponse('<strong>Prima scegli un’immagine.</strong><br>La tazza deve lasciare un’impronta visibile.');
         return;
       }
 
+      button.disabled = true;
+      status.textContent = 'Lettura in corso...';
+
+      try {
+        if (BACKEND_URL) {
+          const apiResult = await requestBackendOracle(file, intent, question);
+          showBackendReading(apiResult, question);
+          status.textContent = 'Risposta ricevuta dal backend.';
+        } else {
+          showLocalReading(file, intent, question);
+          status.textContent = 'Backend non configurato: lettura locale attiva.';
+        }
+      } catch (error) {
+        console.warn('Backend unavailable, using local fallback:', error);
+        showLocalReading(file, intent, question);
+        status.textContent = 'Backend non raggiungibile: fallback locale attivo.';
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function requestBackendOracle(file, intent, question) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('intent', intent);
+      formData.append('question', question);
+
+      const response = await fetch(`${BACKEND_URL}/api/oracle`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Backend returned ${response.status}`);
+      }
+
+      return response.json();
+    }
+
+    function showBackendReading(result, question) {
+      const oracle = result.oracle || {};
+      showResponse(`
+        <strong>Simbolo emerso:</strong> ${escapeHtml(oracle.symbol || 'soglia')}<br><br>
+        <strong>Intento:</strong> ${escapeHtml(oracle.intent || 'direzione')}<br><br>
+        ${escapeHtml(oracle.reading || 'La tazza risponde in silenzio. Riformula l’intento e riprova.')}
+        ${question ? `<br><br><em>Frase ascoltata:</em> “${escapeHtml(question)}”` : ''}
+      `);
+    }
+
+    function showLocalReading(file, intent, question) {
       const seed = (file.name.length + file.size + intent.length + question.length) % 5;
       const symbols = ['ankh', 'spirale', 'soglia', 'occhio', 'ruota'];
-      response.style.display = 'block';
-      response.innerHTML = `
+      showResponse(`
         <strong>Simbolo emerso:</strong> ${symbols[seed]}<br><br>
         <strong>Intento:</strong> ${intent}<br><br>
         ${readings[intent]}
         ${question ? `<br><br><em>Frase ascoltata:</em> “${escapeHtml(question)}”` : ''}
-      `;
+      `);
+    }
+
+    function showResponse(html) {
+      const response = document.getElementById('response');
+      response.style.display = 'block';
+      response.innerHTML = html;
     }
 
     function escapeHtml(value) {
-      return value.replace(/[&<>'"]/g, function (char) {
+      return String(value).replace(/[&<>'"]/g, function (char) {
         return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char];
       });
     }
