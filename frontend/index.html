@@ -159,13 +159,12 @@
     <article id="response"></article>
 
     <p class="small">
-      Versione stabile con fallback. Quando il backend è configurato, la lettura passa tramite API; altrimenti resta attiva la lettura locale.
+      Modalità API automatica attiva. SipnoSis tenta prima la lettura AI serverless e usa fallback simbolico solo se necessario.
     </p>
   </main>
 
   <script>
-    // Set this after deploying the Flask backend
-    const BACKEND_URL = '';
+    const BACKEND_URL = '/api/oracle';
 
     const readings = {
       direzione: 'La forma indica una soglia: non forzare il passaggio, attraversalo con precisione. Il prossimo gesto deve essere piccolo, concreto, verificabile.',
@@ -188,35 +187,32 @@
       }
 
       button.disabled = true;
-      status.textContent = 'Lettura in corso...';
+      status.textContent = 'Consultazione oracolare in corso...';
 
       try {
-        if (BACKEND_URL) {
-          const apiResult = await requestBackendOracle(file, intent, question);
-          showBackendReading(apiResult, question);
-          status.textContent = 'Risposta AI ricevuta.';
-        } else {
-          showLocalReading(file, intent, question);
-          status.textContent = 'Backend non configurato: lettura locale attiva.';
-        }
+        const apiResult = await requestBackendOracle(file, intent, question);
+        showBackendReading(apiResult, question);
+        status.textContent = apiResult.vision_enabled
+          ? 'Visione AI attiva.'
+          : 'Oracle engine simbolico attivo.';
       } catch (error) {
         console.warn(error);
         showLocalReading(file, intent, question);
-        status.textContent = 'Backend non raggiungibile: fallback locale attivo.';
+        status.textContent = 'Fallback simbolico locale attivato.';
       } finally {
         button.disabled = false;
       }
     }
 
     async function requestBackendOracle(file, intent, question) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('intent', intent);
-      formData.append('question', question);
-
-      const response = await fetch(`${BACKEND_URL}/api/oracle`, {
+      const response = await fetch(BACKEND_URL, {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': file.type || 'image/jpeg',
+          'X-Sipnosis-Intent': intent,
+          'X-Sipnosis-Question': encodeURIComponent(question)
+        },
+        body: file
       });
 
       if (!response.ok) {
@@ -233,7 +229,7 @@
       showResponse(`
         <div class="oracle-section">
           <div class="oracle-title">Simbolo rituale</div>
-          <strong>${escapeHtml(oracle.symbol || 'soglia')}</strong>
+          <strong>${escapeHtml(vision.symbol || oracle.symbol || 'soglia')}</strong>
         </div>
 
         <div class="oracle-section">
