@@ -1,40 +1,1550 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Upload Rituale .L — Frontend v2</title>
-  <!-- Vercel Web Analytics -->
-  <script defer src="https://cdn.vercel-analytics.com/v1/script.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flavors Forgotten — Preserving Endangered Culinary Heritage</title>
+    <meta name="description" content="Documenting endangered recipes, culinary memory, and last surviving food traditions around the world. Cultural preservation through food.">
+    
+    <!-- Open Graph Meta Tags for Social Sharing -->
+    <meta property="og:title" content="Flavors Forgotten — Preserving Endangered Culinary Heritage">
+    <meta property="og:description" content="Documenting recipes that might not survive another generation.">
+    <meta property="og:type" content="website">
+    
+    <!-- Preconnect for fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <style>
+        /* ---------- ROOT + RESET ---------- */
+        :root {
+            /* Main brand colors */
+            --gold: #b8942f;
+            --gold-light: #d4b15f;
+            --gold-dark: #8a6f1f;
+            --cream-bg: #f9f5eb;
+            --paper-white: #fffdf8;
+            --earth-brown: #5d4037;
+            --brown-medium: #4a332c;
+            --brown-dark: #3e2723;
+            --brown-text: #2a1a14;
+
+            /* Last Bite colors */
+            --urgent-red: #c62828;
+            --urgent-red-light: #e53935;
+            --urgent-red-dark: #a00000;
+            --lb-bg: #1a1a1a;
+            --lb-card: #2a2a2a;
+            --lb-text: #f5f5f5;
+            --lb-text-dim: #bcbcbc;
+
+            /* layout */
+            --radius-card: 12px;
+            --radius-pill: 999px;
+            --shadow-card: 0 24px 48px rgba(0,0,0,0.12);
+            --shadow-card-hover: 0 32px 64px rgba(0,0,0,0.18);
+            --transition-fast: 0.25s ease;
+            --transition-medium: 0.35s ease;
+            
+            /* Animation */
+            --fade-in: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--cream-bg);
+            color: var(--brown-text);
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--earth-brown);
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* ---------- HEADER / NAV ---------- */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: var(--brown-dark);
+            color: var(--cream-bg);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+
+        .brand-block {
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: var(--cream-bg);
+            transition: transform var(--transition-fast);
+        }
+
+        .brand-block:hover {
+            transform: translateY(-2px);
+        }
+
+        .brand-title {
+            display: flex;
+            align-items: baseline;
+            gap: .5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gold);
+            line-height: 1.2;
+        }
+
+        .brand-sub {
+            font-size: .8rem;
+            font-weight: 400;
+            color: var(--cream-bg);
+            opacity: 0.8;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-list a {
+            color: var(--cream-bg);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-list a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--gold);
+            transition: width var(--transition-medium);
+        }
+
+        .nav-list a:hover::after,
+        .nav-list a:focus::after {
+            width: 100%;
+        }
+
+        .nav-list a:hover {
+            color: var(--gold);
+        }
+
+        .nav-list .last-bite-link a {
+            color: var(--urgent-red);
+            font-weight: 600;
+        }
+
+        /* hamburger */
+        .menu-toggle {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            padding: .5rem .6rem;
+            color: var(--cream-bg);
+            font-size: 0.9rem;
+            line-height: 1;
+            cursor: pointer;
+            display: none;
+            transition: all var(--transition-fast);
+        }
+
+        .menu-toggle:hover {
+            background-color: rgba(255,255,255,0.1);
+            border-color: var(--gold);
+        }
+
+        /* mobile menu */
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-wrap: wrap;
+                row-gap: 1rem;
+            }
+
+            .menu-toggle {
+                display: inline-block;
+            }
+
+            .nav-list {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                background-color: var(--brown-dark);
+                border-top: 1px solid rgba(255,255,255,0.1);
+                padding: 1rem 0;
+                display: none;
+            }
+
+            .nav-list.open {
+                display: flex;
+            }
+
+            .nav-list li {
+                width: 100%;
+                padding: .5rem 0;
+                padding-left: .25rem;
+            }
+        }
+
+        /* ---------- HERO ---------- */
+        .hero {
+            background:
+                linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.6)),
+                url('https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--cream-bg);
+            text-align: center;
+            padding: 5rem 0 6rem;
+            position: relative;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .hero-content {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 1vw + 2rem, 3.2rem);
+            margin-bottom: 1rem;
+            color: var(--cream-bg);
+            text-shadow: 0 4px 16px rgba(0,0,0,0.8);
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #f8f6ef;
+            margin: 0 auto 2rem;
+            line-height: 1.5;
+            max-width: 600px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(to bottom right, var(--gold), var(--gold-dark));
+            color: var(--brown-dark);
+            font-weight: 600;
+            text-decoration: none;
+            padding: .8rem 1.4rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            box-shadow: 0 12px 24px rgba(0,0,0,.4);
+            transition: all var(--transition-fast);
+            border: 0;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 18px 32px rgba(0,0,0,.55);
+            background: linear-gradient(to bottom right, var(--gold-light), var(--gold));
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        /* FINAL — Urgent / Last Bite Button */
+        .btn-urgent {
+            background-image: linear-gradient(
+                135deg,
+                var(--urgent-red) 0%,
+                var(--urgent-red-dark) 50%,
+                var(--urgent-red) 100%
+            );
+            background-size: 200% 200%;
+            background-position: 0% 50%;
+            color: #fff;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.8rem 1.4rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            border: none;
+            cursor: pointer;
+            display: inline-block;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+            transition:
+                background-position 0.35s ease,
+                box-shadow 0.35s ease,
+                transform 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-urgent::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-urgent:hover::before {
+            left: 100%;
+        }
+
+        .btn-urgent:hover,
+        .btn-urgent:focus-visible {
+            background-position: 100% 50%;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 22px 45px rgba(0, 0, 0, 0.8);
+        }
+
+        .btn-urgent:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        /* ---------- GENERIC SECTION WRAPPER ---------- */
+        section.section {
+            padding: 4rem 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.8rem, 0.5vw + 1.6rem, 2.4rem);
+            font-weight: 700;
+            color: var(--earth-brown);
+            margin-bottom: .75rem;
+            position: relative;
+            display: inline-block;
+            padding-bottom: .75rem;
+        }
+
+        .section-header h2::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--gold);
+            border-radius: var(--radius-pill);
+        }
+
+        .section-header p {
+            font-size: .95rem;
+            color: #6b5a4c;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* dark variant (Last Bite) */
+        .last-bite-section {
+            background-color: var(--lb-bg);
+            color: var(--lb-text);
+            position: relative;
+        }
+
+        .last-bite-section .section-header h2 {
+            color: var(--lb-text);
+        }
+
+        .last-bite-section .section-header h2::after {
+            background-color: var(--urgent-red);
+        }
+
+        .last-bite-section .section-header p {
+            color: var(--lb-text-dim);
+        }
+
+        /* ---------- GRID LAYOUT FOR POSTS ---------- */
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%,300px), 1fr));
+            gap: 2rem;
+        }
+
+        /* ---------- FILTER BAR ---------- */
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--earth-brown);
+            border-radius: var(--radius-pill);
+            color: var(--earth-brown);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background-color: var(--earth-brown);
+            color: var(--cream-bg);
+        }
+
+        /* ---------- CARD: WARM STORIES ---------- */
+        .post-card {
+            background: var(--paper-white);
+            border-radius: var(--radius-card);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition-fast);
+            opacity: 0;
+            animation: fadeIn 0.6s ease-out forwards;
+            animation-delay: calc(var(--card-index, 0) * 0.1s);
+        }
+
+        .post-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-card-hover);
+        }
+
+        .post-media {
+            position: relative;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            transition: transform var(--transition-medium);
+        }
+
+        .post-card:hover .post-media {
+            transform: scale(1.03);
+        }
+
+        .like-badge {
+            position: absolute;
+            right: .75rem;
+            bottom: .75rem;
+            background-color: rgba(255,255,255,0.9);
+            color: var(--brown-dark);
+            font-size: .8rem;
+            line-height: 1;
+            font-weight: 600;
+            border-radius: var(--radius-pill);
+            padding: .4rem .6rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all var(--transition-fast);
+            z-index: 2;
+        }
+
+        .like-badge i {
+            color: #c62828;
+        }
+
+        .like-badge:hover {
+            background-color: #fff;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.4);
+        }
+
+        .like-badge.liked i {
+            animation: pulse 0.3s ease;
+        }
+
+        .post-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .post-tag {
+            display: inline-block;
+            background-color: var(--gold);
+            color: var(--brown-dark);
+            font-weight: 600;
+            font-size: .7rem;
+            line-height: 1.2;
+            padding: .4rem .75rem;
+            border-radius: var(--radius-pill);
+            margin-bottom: .9rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .post-title {
+            font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--earth-brown);
+            margin-bottom: .6rem;
+            line-height: 1.3;
+        }
+
+        .post-excerpt {
+            font-size: .9rem;
+            color: #5a4a40;
+            margin-bottom: 1rem;
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: .8rem;
+            color: #8a7c72;
+        }
+
+        .post-meta i {
+            margin-right: .4rem;
+            opacity: .8;
+        }
+
+        /* ---------- CARD: LAST BITE ---------- */
+        .last-bite-card {
+            background-color: var(--lb-card);
+            border-radius: var(--radius-card);
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.6);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition-fast);
+            opacity: 0;
+            animation: fadeIn 0.6s ease-out forwards;
+            animation-delay: calc(var(--card-index, 0) * 0.1s);
+        }
+
+        .last-bite-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 32px 64px rgba(0,0,0,0.8);
+        }
+
+        .last-bite-flag {
+            background-color: var(--urgent-red);
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 700;
+            line-height: 1.2;
+            padding: .5rem .8rem;
+            border-bottom-right-radius: var(--radius-card);
+            border-top-left-radius: var(--radius-card);
+            width: fit-content;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        .last-bite-media {
+            position: relative;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(30%) contrast(110%);
+            border-top: 2px solid var(--urgent-red);
+            transition: transform var(--transition-medium);
+        }
+
+        .last-bite-card:hover .last-bite-media {
+            transform: scale(1.03);
+        }
+
+        .lb-like-badge {
+            position: absolute;
+            right: .75rem;
+            bottom: .75rem;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            color: var(--lb-text);
+            font-size: .8rem;
+            line-height: 1.2;
+            font-weight: 600;
+            border-radius: var(--radius-pill);
+            padding: .4rem .6rem;
+            box-shadow: 0 16px 30px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all var(--transition-fast);
+            z-index: 2;
+        }
+
+        .lb-like-badge i {
+            color: var(--urgent-red);
+        }
+
+        .lb-like-badge:hover {
+            background-color: rgba(0,0,0,0.8);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 24px 40px rgba(0,0,0,0.9);
+        }
+
+        .lb-like-badge.liked i {
+            animation: pulse 0.3s ease;
+        }
+
+        .last-bite-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            color: var(--lb-text);
+        }
+
+        .last-bite-countdown {
+            color: var(--urgent-red);
+            font-size: .8rem;
+            font-weight: 700;
+            margin-bottom: .6rem;
+            letter-spacing: .03em;
+        }
+
+        .last-bite-title {
+            font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+            color: var(--lb-text);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: .75rem;
+            line-height: 1.3;
+        }
+
+        .last-bite-excerpt {
+            font-size: .9rem;
+            line-height: 1.5;
+            color: var(--lb-text-dim);
+            margin-bottom: 1.25rem;
+            flex: 1;
+        }
+
+        /* ---------- ABOUT / MISSION ---------- */
+        .about-section {
+            background-color: var(--earth-brown);
+            color: var(--cream-bg);
+            position: relative;
+        }
+
+        .about-inner {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about-inner p {
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
+            color: #f4efe6;
+            line-height: 1.6;
+        }
+
+        .about-inner .btn {
+            margin-top: .5rem;
+        }
+
+        .about-section .section-header h2 {
+            color: var(--cream-bg);
+        }
+
+        .about-section .section-header h2::after {
+            background-color: var(--gold);
+        }
+
+        .about-section .section-header p {
+            color: #f4efe6;
+        }
+
+        /* ---------- NEWSLETTER ---------- */
+        .newsletter-section {
+            background-color: var(--cream-bg);
+            border-top: 1px solid rgba(0,0,0,0.08);
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .newsletter-box {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 2rem;
+            background: var(--paper-white);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            min-width: 250px;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--earth-brown);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: var(--cream-bg);
+            color: var(--brown-text);
+            transition: all var(--transition-fast);
+        }
+
+        .newsletter-form input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(184, 148, 47, 0.2);
+        }
+
+        .newsletter-form .btn {
+            white-space: nowrap;
+        }
+
+        .form-success {
+            color: #2e7d32;
+            font-weight: 500;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* ---------- FOOTER ---------- */
+        footer {
+            background-color: var(--brown-dark);
+            color: var(--cream-bg);
+            padding: 3rem 0 2rem;
+            border-top: 2px solid rgba(255,255,255,0.05);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%,220px),1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-col h3 {
+            color: var(--gold);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+            margin-bottom: 1rem;
+        }
+
+        .footer-brand-text {
+            font-size: .9rem;
+            color: #f4efe6;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+        }
+
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255,255,255,0.08);
+            border-radius: 50%;
+            text-decoration: none;
+            color: var(--cream-bg);
+            font-size: 1rem;
+            transition: all var(--transition-fast);
+        }
+
+        .social-links a:hover {
+            background-color: var(--gold);
+            color: var(--brown-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 24px rgba(0,0,0,.7);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: .6rem;
+        }
+
+        .footer-links a {
+            font-size: .9rem;
+            color: var(--cream-bg);
+            text-decoration: none;
+            opacity: .9;
+            transition: color var(--transition-fast), opacity var(--transition-fast);
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+            opacity: 1;
+        }
+
+        .copyright {
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding-top: 1.5rem;
+            font-size: .8rem;
+            color: #b8afa4;
+        }
+
+        /* ---------- BACK TO TOP BUTTON ---------- */
+        #backToTop {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            background-color: var(--brown-dark);
+            color: var(--cream-bg);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: var(--radius-pill);
+            padding: .6rem .9rem;
+            font-size: .8rem;
+            line-height: 1;
+            box-shadow: 0 18px 32px rgba(0,0,0,.6);
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: .5rem;
+            z-index: 2000;
+            transition: all var(--transition-fast);
+        }
+
+        #backToTop:hover {
+            background-color: var(--gold);
+            color: var(--brown-dark);
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 24px 40px rgba(0,0,0,.8);
+        }
+
+        #backToTop i {
+            font-size: .9rem;
+        }
+
+        /* ---------- LOADING STATES ---------- */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* ---------- RESPONSIVE ADJUSTMENTS ---------- */
+        @media (max-width: 768px) {
+            .section {
+                padding: 3rem 0;
+            }
+            
+            .newsletter-form {
+                flex-direction: column;
+            }
+            
+            .newsletter-form input {
+                min-width: 100%;
+            }
+            
+            .hero {
+                padding: 3rem 0 4rem;
+                background-attachment: scroll;
+            }
+        }
+    </style>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/TEj5Tn6GO2zA8J3+j7z2j19ao0H4m2C9bE+6MZ4+6dkhFp5l9z6M1F0ZPg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-<body style="background:#1a1a1a; color:#d4af37; font-family:Times New Roman, serif;">
-  <h1>📜 Upload Rituale `.L` su Vercel Blob (Frontend v2)</h1>
-  <input type="file" id="fileInput" />
-  <button onclick="upload()">Carica File</button>
-  <p id="result"></p>
+<body>
 
-  <script type="module">
-    import { put } from "https://esm.sh/@vercel/blob";
+<!-- ===== HEADER / NAV ===== -->
+<header>
+    <div class="container header-inner">
+        <a class="brand-block" href="#home">
+            <div class="brand-title">
+                <span>Flavors Forgotten</span>
+            </div>
+            <div class="brand-sub">Preserving Culinary Heritage</div>
+        </a>
 
-    async function upload() {
-      const fileInput = document.getElementById("fileInput");
-      const file = fileInput.files[0];
+        <button class="menu-toggle" aria-label="Toggle menu" id="menuToggle" aria-expanded="false">
+            <i class="fas fa-bars"></i>
+        </button>
 
-      if (!file) {
-        alert("Seleziona un file prima.");
-        return;
-      }
+        <nav aria-label="Main navigation">
+            <ul class="nav-list" id="navList">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#recipes">Recipes</a></li>
+                <li><a href="#stories">Stories</a></li>
+                <li><a href="#about">About</a></li>
+                <li class="last-bite-link"><a href="#lastbite">Last Bite</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
 
-      const arrayBuffer = await file.arrayBuffer();
-      const content = new TextDecoder().decode(arrayBuffer);
+<!-- ===== HERO ===== -->
+<section id="home" class="hero">
+    <div class="container hero-content">
+        <h1>Preserving the World's Endangered Recipes</h1>
+        <p>
+            Every dish has a memory. Every ingredient is a witness. We document
+            the recipes that might not survive another generation.
+        </p>
+        <a href="#recipes" class="btn">Explore the Archive</a>
+    </div>
+</section>
 
-      const { url } = await put("rituali/" + file.name, content, {
-        access: "public",
-        token: "vercel_XXXXXXXXXXXXXXXXXXXXXXXX", // 🔐 Inserisci qui la tua token
-      });
+<!-- ===== FLAVORS FORGOTTEN / WARM STORIES ===== -->
+<section id="recipes" class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Flavors Forgotten</h2>
+            <p>Warm, living recipes and the families who refuse to let them die.</p>
+        </div>
 
-      document.getElementById("result").innerHTML =
-        `✅ File caricato con successo:<br><a href="${url}" target="_blank">${url}</a>`;
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">All Recipes</button>
+            <button class="filter-btn" data-filter="italian">Italian</button>
+            <button class="filter-btn" data-filter="mexican">Mexican</button>
+            <button class="filter-btn" data-filter="japanese">Japanese</button>
+            <button class="filter-btn" data-filter="vegetarian">Vegetarian</button>
+        </div>
+
+        <div class="posts-grid" id="recipeGrid">
+            <!-- Card 1 -->
+            <article class="post-card" data-category="italian" style="--card-index: 0;">
+                <div class="post-media" style="background-image: url('https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=1350&q=80');">
+                    <div class="like-badge" data-like="pasta-al-forno">
+                        <i class="fa-regular fa-heart"></i>
+                        <span class="like-count">243</span>
+                    </div>
+                </div>
+                <div class="post-body">
+                    <span class="post-tag">Italian Heritage</span>
+                    <h3 class="post-title">
+                        Nonna's Pasta al Forno — A Sunday Tradition Since 1952
+                    </h3>
+                    <p class="post-excerpt">
+                        Baked pasta, layered by hand. A ritual of tomato, pride,
+                        and arguments over who gets the crunchy corner.
+                    </p>
+                    <div class="post-meta">
+                        <span><i class="fa-regular fa-clock"></i>15 min read</span>
+                        <span><i class="fa-solid fa-utensils"></i>Family Table</span>
+                        <span><i class="fa-solid fa-signal"></i>Intermediate</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 2 -->
+            <article class="post-card" data-category="mexican" style="--card-index: 1;">
+                <div class="post-media" style="background-image: url('https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=1350&q=80');">
+                    <div class="like-badge" data-like="mole-negro">
+                        <i class="fa-regular fa-heart"></i>
+                        <span class="like-count">187</span>
+                    </div>
+                </div>
+                <div class="post-body">
+                    <span class="post-tag">Mexican Traditions</span>
+                    <h3 class="post-title">
+                        Mole Negro: Oaxaca's Seven-Day Ritual
+                    </h3>
+                    <p class="post-excerpt">
+                        Spice, smoke, labor, memory: a sauce that holds grief
+                        and celebration in the same spoon.
+                    </p>
+                    <div class="post-meta">
+                        <span><i class="fa-regular fa-clock"></i>12 min read</span>
+                        <span><i class="fa-solid fa-fire"></i>Wood Fire</span>
+                        <span><i class="fa-solid fa-signal"></i>Advanced</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Card 3 -->
+            <article class="post-card" data-category="japanese vegetarian" style="--card-index: 2;">
+                <div class="post-media" style="background-image: url('https://images.unsplash.com/photo-1563245372-f25645f86c73?auto=format&fit=crop&w=1350&q=80');">
+                    <div class="like-badge" data-like="kaiseki-cuisine">
+                        <i class="fa-regular fa-heart"></i>
+                        <span class="like-count">312</span>
+                    </div>
+                </div>
+                <div class="post-body">
+                    <span class="post-tag">Japanese Artistry</span>
+                    <h3 class="post-title">
+                        The 300-Year Legacy of Kyoto's Kaiseki Cuisine
+                    </h3>
+                    <p class="post-excerpt">
+                        A seasonal poem served in silence. Precision,
+                        restraint, respect for what nature is offering today.
+                    </p>
+                    <div class="post-meta">
+                        <span><i class="fa-regular fa-clock"></i>18 min read</span>
+                        <span><i class="fa-solid fa-leaf"></i>Seasonal</span>
+                        <span><i class="fa-solid fa-signal"></i>Expert</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- ===== LAST BITE / URGENT STORIES ===== -->
+<section id="lastbite" class="section last-bite-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Last Bite</h2>
+            <p>These are not just recipes. They are exit wounds. When they go, they go forever.</p>
+        </div>
+
+        <div class="posts-grid">
+            <!-- LB Card 1 -->
+            <article class="last-bite-card" style="--card-index: 0;">
+                <div class="last-bite-flag">Last Bite</div>
+                <div class="last-bite-media" style="background-image: url('https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=1350&q=80');">
+                    <div class="lb-like-badge" data-like="himalayan-bread">
+                        <i class="fa-regular fa-heart"></i>
+                        <span class="like-count">98</span>
+                    </div>
+                </div>
+                <div class="last-bite-body">
+                    <div class="last-bite-countdown">3 PEOPLE LEFT</div>
+                    <h3 class="last-bite-title">
+                        The Himalayan Bread That's Disappearing With Glaciers
+                    </h3>
+                    <p class="last-bite-excerpt">
+                        As the ice retreats, the barley that fed entire mountain
+                        villages can no longer grow. Tsampa may not survive the melt.
+                    </p>
+                    <a href="#"
+                       class="btn-urgent"
+                       aria-label="Read the urgent story about Himalayan bread">
+                        Read the Urgent Story
+                    </a>
+                </div>
+            </article>
+
+            <!-- LB Card 2 -->
+            <article class="last-bite-card" style="--card-index: 1;">
+                <div class="last-bite-flag">Last Bite</div>
+                <div class="last-bite-media" style="background-image: url('https://images.unsplash.com/photo-1541014741259-de529411b96a?auto=format&fit=crop&w=1350&q=80');">
+                    <div class="lb-like-badge" data-like="stalin-bread">
+                        <i class="fa-regular fa-heart"></i>
+                        <span class="like-count">211</span>
+                    </div>
+                </div>
+                <div class="last-bite-body">
+                    <div class="last-bite-countdown">12 BABA LEFT</div>
+                    <h3 class="last-bite-title">
+                        The Bread Stalin Tried to Erase
+                    </h3>
+                    <p class="last-bite-excerpt">
+                        Soviet bans. Secret ovens. Ritual dough passed in whispers.
+                        Only a handful of Ukrainian grandmothers still know it.
+                    </p>
+                    <a href="#"
+                       class="btn-urgent"
+                       aria-label="Read the urgent story about banned ritual bread">
+                        Read the Urgent Story
+                    </a>
+                </div>
+            </article>
+
+            <!-- LB Card 3 -->
+            <article class="last-bite-card" style="--card-index: 2;">
+                <div class="last-bite-flag">Last Bite</div>
+                <div class="last-bite-media" style="background-image: url('https://images.unsplash.com/photo-1578326457399-ab3436bd4b8a?auto=format&fit=crop&w=1350&q=80');">
+                    <div class="lb-like-badge" data-like="monastery-cheese">
+                        <i class="fa-regular fa-heart"></i>
+                        <span class="like-count">402</span>
+                    </div>
+                </div>
+                <div class="last-bite-body">
+                    <div class="last-bite-countdown">1 MONASTERY LEFT</div>
+                    <h3 class="last-bite-title">
+                        The Cheese Monks Made for 800 Years
+                    </h3>
+                    <p class="last-bite-excerpt">
+                        The last brother is closing the gates. Industrial copies exist,
+                        but the soul of the cheese is going quiet with him.
+                    </p>
+                    <a href="#"
+                       class="btn-urgent"
+                       aria-label="Read the urgent story about monastery cheese">
+                        Read the Urgent Story
+                    </a>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- ===== NEWSLETTER ===== -->
+<section class="section newsletter-section">
+    <div class="container">
+        <div class="newsletter-box">
+            <div class="section-header">
+                <h2>Stay Connected</h2>
+                <p>Join our newsletter to receive updates about endangered recipes and cultural stories.</p>
+            </div>
+            <form class="newsletter-form" id="newsletterForm">
+                <input type="email" 
+                       placeholder="Your email address" 
+                       aria-label="Email address"
+                       required>
+                <button type="submit" class="btn">Subscribe</button>
+            </form>
+            <div class="form-success" id="formSuccess">
+                Thank you! You've been subscribed to our newsletter.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== ABOUT / MISSION ===== -->
+<section id="about" class="section about-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Our Mission</h2>
+            <p>Why we exist and what we refuse to let disappear.</p>
+        </div>
+
+        <div class="about-inner">
+            <p>
+                Flavors Forgotten documents recipes that carry memory, identity,
+                resistance, and dignity. We record them while the original voices
+                are still alive.
+            </p>
+            <p>
+                This is not nostalgia content. It's cultural survival. We capture
+                ingredients, technique, dialect, ritual context, who taught it,
+                and what was lost along the way.
+            </p>
+            <p>
+                We're building an archive — and proof that these people, and
+                their food, were here.
+            </p>
+
+            <a href="#lastbite" class="btn">See Active Endangered Dishes</a>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h3>Flavors Forgotten</h3>
+                <div class="footer-brand-text">
+                    Preserving culinary heritage one recipe at a time. Documenting endangered food traditions before they disappear forever.
+                </div>
+                <div class="social-links" aria-label="Social media">
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                    <a href="#" aria-label="Pinterest"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h3>Explore</h3>
+                <ul class="footer-links">
+                    <li><a href="#recipes">Recipes Archive</a></li>
+                    <li><a href="#stories">Cultural Stories</a></li>
+                    <li><a href="#recipes">Cooking Tutorials</a></li>
+                    <li><a href="#lastbite">Last Bite Series</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h3>Get Involved</h3>
+                <ul class="footer-links">
+                    <li><a href="#about">Submit a Recipe</a></li>
+                    <li><a href="#about">Volunteer</a></li>
+                    <li><a href="#about">Donate</a></li>
+                    <li><a href="#about">Partnerships</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col" id="stories">
+                <h3>Contact</h3>
+                <ul class="footer-links">
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#about">FAQ</a></li>
+                    <li><a href="#about">Press Inquiries</a></li>
+                    <li><a href="#about">Newsletter</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="copyright">
+            &copy; 2025 Flavors Forgotten. All rights reserved. This project documents cultural heritage for educational purposes.
+        </div>
+    </div>
+</footer>
+
+<!-- ===== BACK TO TOP BUTTON ===== -->
+<button id="backToTop" aria-label="Back to top">
+    <i class="fa-solid fa-arrow-up"></i>
+    <span>Top</span>
+</button>
+
+<!-- ===== JS: mobile nav, like buttons, back to top ===== -->
+<script>
+    // mobile nav toggle
+    const toggleBtn = document.getElementById('menuToggle');
+    const navList = document.getElementById('navList');
+    
+    toggleBtn.addEventListener('click', () => {
+        const isExpanded = toggleBtn.getAttribute('aria-expanded') === 'true';
+        toggleBtn.setAttribute('aria-expanded', !isExpanded);
+        navList.classList.toggle('open');
+    });
+
+    // close mobile nav on link click
+    navList.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            navList.classList.remove('open');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+        });
+    });
+
+    // Like system with localStorage persistence
+    class LikeSystem {
+        constructor() {
+            this.likes = JSON.parse(localStorage.getItem('flavorsForgottenLikes')) || {};
+            this.init();
+        }
+        
+        init() {
+            // Initialize like buttons
+            document.querySelectorAll('[data-like]').forEach(badge => {
+                const likeId = badge.getAttribute('data-like');
+                const countEl = badge.querySelector('.like-count');
+                const iconEl = badge.querySelector('i');
+                
+                // Set initial state
+                if (this.likes[likeId]) {
+                    iconEl.classList.remove('fa-regular');
+                    iconEl.classList.add('fa-solid');
+                    if (countEl) {
+                        const baseCount = parseInt(countEl.textContent.trim(), 10) || 0;
+                        countEl.textContent = baseCount + 1;
+                    }
+                }
+                
+                // Add click handler
+                badge.addEventListener('click', () => this.handleLike(likeId, badge));
+            });
+        }
+        
+        handleLike(likeId, badge) {
+            const countEl = badge.querySelector('.like-count');
+            const iconEl = badge.querySelector('i');
+            
+            let current = parseInt(countEl.textContent.trim(), 10) || 0;
+            const wasLiked = this.likes[likeId];
+            
+            if (wasLiked) {
+                // Unlike
+                current = Math.max(0, current - 1);
+                iconEl.classList.remove('fa-solid');
+                iconEl.classList.add('fa-regular');
+                delete this.likes[likeId];
+            } else {
+                // Like
+                current = current + 1;
+                iconEl.classList.remove('fa-regular');
+                iconEl.classList.add('fa-solid');
+                this.likes[likeId] = true;
+                badge.classList.add('liked');
+                setTimeout(() => badge.classList.remove('liked'), 300);
+            }
+            
+            countEl.textContent = current.toString();
+            this.saveLikes();
+            
+            // Animation
+            iconEl.style.transition = 'transform 0.2s ease';
+            iconEl.style.transform = 'scale(1.3)';
+            setTimeout(() => { iconEl.style.transform = 'scale(1)'; }, 200);
+        }
+        
+        saveLikes() {
+            localStorage.setItem('flavorsForgottenLikes', JSON.stringify(this.likes));
+        }
     }
-  </script>
+
+    // Recipe filtering
+    class RecipeFilter {
+        constructor() {
+            this.filterButtons = document.querySelectorAll('.filter-btn');
+            this.recipeCards = document.querySelectorAll('.post-card');
+            this.init();
+        }
+        
+        init() {
+            this.filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => this.filterRecipes(btn));
+            });
+        }
+        
+        filterRecipes(clickedBtn) {
+            const filter = clickedBtn.getAttribute('data-filter');
+            
+            // Update active button
+            this.filterButtons.forEach(btn => btn.classList.remove('active'));
+            clickedBtn.classList.add('active');
+            
+            // Filter cards
+            this.recipeCards.forEach(card => {
+                if (filter === 'all' || card.getAttribute('data-category').includes(filter)) {
+                    card.style.display = 'flex';
+                    card.style.animation = 'fadeIn 0.6s ease-out forwards';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    // Newsletter form
+    class NewsletterForm {
+        constructor() {
+            this.form = document.getElementById('newsletterForm');
+            this.successMessage = document.getElementById('formSuccess');
+            this.init();
+        }
+        
+        init() {
+            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        }
+        
+        handleSubmit(e) {
+            e.preventDefault();
+            const emailInput = this.form.querySelector('input[type="email"]');
+            const email = emailInput.value.trim();
+            
+            if (this.validateEmail(email)) {
+                // In a real app, you would send this to your server
+                this.showSuccess();
+                emailInput.value = '';
+                
+                // Simulate API call
+                setTimeout(() => {
+                    console.log('Subscribed email:', email);
+                }, 500);
+            } else {
+                this.showError(emailInput);
+            }
+        }
+        
+        validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        showSuccess() {
+            this.successMessage.style.display = 'block';
+            this.form.style.display = 'none';
+            
+            setTimeout(() => {
+                this.successMessage.style.display = 'none';
+                this.form.style.display = 'flex';
+            }, 5000);
+        }
+        
+        showError(input) {
+            input.style.borderColor = 'var(--urgent-red)';
+            input.focus();
+            
+            setTimeout(() => {
+                input.style.borderColor = 'var(--earth-brown)';
+            }, 2000);
+        }
+    }
+
+    // Back to top button
+    class BackToTop {
+        constructor() {
+            this.button = document.getElementById('backToTop');
+            this.init();
+        }
+        
+        init() {
+            window.addEventListener('scroll', () => this.toggleVisibility());
+            this.button.addEventListener('click', () => this.scrollToTop());
+        }
+        
+        toggleVisibility() {
+            if (window.scrollY > 400) {
+                this.button.style.display = 'flex';
+            } else {
+                this.button.style.display = 'none';
+            }
+        }
+        
+        scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    // Initialize everything when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        new LikeSystem();
+        new RecipeFilter();
+        new NewsletterForm();
+        new BackToTop();
+        
+        // Set card indices for staggered animation
+        document.querySelectorAll('.post-card, .last-bite-card').forEach((card, index) => {
+            card.style.setProperty('--card-index', index);
+        });
+        
+        // Lazy load images
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+    });
+
+    // Debounce scroll handler
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            // Handle scroll-based effects
+        }, 100);
+    });
+</script>
+
 </body>
 </html>
