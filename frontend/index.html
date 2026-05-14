@@ -37,6 +37,8 @@
     .history-item { border: 1px solid rgba(212,175,55,.18); border-radius: 16px; padding: 14px; background: rgba(0,0,0,.24); }
     .history-meta { color: rgba(230,211,163,.68); font-size: .82rem; margin-bottom: 6px; }
     .history-symbol { color: #d4af37; font-weight: bold; }
+    .note-box { margin-top: 10px; display: grid; gap: 8px; }
+    .note-box textarea { min-height: 64px; font-size: .9rem; }
   </style>
 </head>
 <body onload="renderHistory()">
@@ -51,9 +53,7 @@
       <div id="previewWrap" class="preview-wrap" aria-live="polite"><img id="imagePreview" alt="Anteprima della macchia caricata" /><div id="previewCaption" class="preview-caption"></div></div>
 
       <label for="intent">Intento</label>
-      <select id="intent">
-        <option value="direzione">Direzione</option><option value="protezione">Protezione</option><option value="abbondanza">Abbondanza</option><option value="relazione">Relazione</option><option value="trasformazione">Trasformazione</option>
-      </select>
+      <select id="intent"><option value="direzione">Direzione</option><option value="protezione">Protezione</option><option value="abbondanza">Abbondanza</option><option value="relazione">Relazione</option><option value="trasformazione">Trasformazione</option></select>
 
       <label for="question">Domanda o frase rituale</label>
       <textarea id="question" placeholder="Scrivi qui ciò che vuoi chiedere alla tazza..."></textarea>
@@ -69,7 +69,7 @@
       <button class="secondary" type="button" onclick="clearHistory()">Svuota cronologia locale</button>
     </section>
 
-    <p class="small">Modalità API automatica attiva. Le ultime letture vengono salvate solo su questo dispositivo finché non sarà attivo l'archivio cloud.</p>
+    <p class="small">Le ultime letture e le tue note vengono salvate solo su questo dispositivo finché non sarà attivo l'archivio cloud.</p>
   </main>
 
   <script>
@@ -153,16 +153,14 @@
     function saveHistory(result, question, fileName) {
       const oracle = result.oracle || {};
       const vision = result.vision || {};
-      const item = { date: new Date().toISOString(), fileName, question, intent: oracle.intent || 'direzione', symbol: vision.symbol || oracle.symbol || 'soglia', reading: vision.interpretation || oracle.reading || '', ai: Boolean(result.vision_enabled) };
+      const item = { id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()), date: new Date().toISOString(), fileName, question, note: '', intent: oracle.intent || 'direzione', symbol: vision.symbol || oracle.symbol || 'soglia', reading: vision.interpretation || oracle.reading || '', ai: Boolean(result.vision_enabled) };
       const history = getHistory();
       history.unshift(item);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 12)));
       renderHistory();
     }
 
-    function getHistory() {
-      try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
-    }
+    function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; } }
 
     function renderHistory() {
       const history = getHistory();
@@ -170,21 +168,28 @@
       const list = document.getElementById('historyList');
       if (!history.length) { panel.style.display = 'none'; return; }
       panel.style.display = 'grid';
-      list.innerHTML = history.map(item => `
+      list.innerHTML = history.map((item, index) => `
         <div class="history-item">
           <div class="history-meta">${escapeHtml(new Date(item.date).toLocaleString())} · ${escapeHtml(item.intent)} · ${item.ai ? 'AI' : 'simbolico'}</div>
           <div class="history-symbol">${escapeHtml(item.symbol)}</div>
           <div>${escapeHtml((item.reading || '').slice(0, 260))}${item.reading && item.reading.length > 260 ? '…' : ''}</div>
           ${item.question ? `<div class="history-meta">Domanda: ${escapeHtml(item.question)}</div>` : ''}
+          <div class="note-box">
+            <label for="note-${index}">Nota personale</label>
+            <textarea id="note-${index}" placeholder="Cosa ti ha fatto vedere questa lettura?" oninput="updateNote(${index}, this.value)">${escapeHtml(item.note || '')}</textarea>
+          </div>
         </div>`).join('');
     }
 
-    function clearHistory() {
-      localStorage.removeItem(HISTORY_KEY);
-      renderHistory();
-      document.getElementById('status').textContent = 'Cronologia locale svuotata.';
+    function updateNote(index, note) {
+      const history = getHistory();
+      if (!history[index]) return;
+      history[index].note = note;
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      document.getElementById('status').textContent = 'Nota salvata nel Libro dei sorsi.';
     }
 
+    function clearHistory() { localStorage.removeItem(HISTORY_KEY); renderHistory(); document.getElementById('status').textContent = 'Cronologia locale svuotata.'; }
     function showResponse(html) { const response = document.getElementById('response'); response.style.display = 'block'; response.innerHTML = html; }
     function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[c]); }
   </script>
