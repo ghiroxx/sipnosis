@@ -88,6 +88,26 @@
     }
     button:disabled { opacity: 0.58; cursor: wait; }
     button:hover:not(:disabled) { filter: brightness(1.07); }
+    .preview-wrap {
+      display: none;
+      border: 1px solid rgba(212, 175, 55, 0.28);
+      border-radius: 18px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.32);
+    }
+    .preview-wrap img {
+      display: block;
+      width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+    .preview-caption {
+      margin-top: 8px;
+      font-size: 0.88rem;
+      color: rgba(230, 211, 163, 0.72);
+      text-align: center;
+    }
     #response {
       display: none;
       margin-top: 26px;
@@ -138,7 +158,12 @@
 
     <section class="panel" aria-label="Richiesta oracolare">
       <label for="image">Immagine della macchia</label>
-      <input id="image" type="file" accept="image/*" />
+      <input id="image" type="file" accept="image/*" onchange="previewImage()" />
+
+      <div id="previewWrap" class="preview-wrap" aria-live="polite">
+        <img id="imagePreview" alt="Anteprima della macchia caricata" />
+        <div id="previewCaption" class="preview-caption"></div>
+      </div>
 
       <label for="intent">Intento</label>
       <select id="intent">
@@ -173,6 +198,32 @@
       relazione: 'Due correnti si avvicinano senza fondersi del tutto. Serve chiarezza: ciò che non viene detto crea più peso di ciò che viene detto.',
       trasformazione: 'La macchia non è rottura ma mutazione. Lascia cadere una forma vecchia prima di chiedere alla nuova di apparire.'
     };
+
+    function previewImage() {
+      const file = document.getElementById('image').files[0];
+      const previewWrap = document.getElementById('previewWrap');
+      const preview = document.getElementById('imagePreview');
+      const caption = document.getElementById('previewCaption');
+      const status = document.getElementById('status');
+
+      if (!file) {
+        previewWrap.style.display = 'none';
+        preview.removeAttribute('src');
+        caption.textContent = '';
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        previewWrap.style.display = 'none';
+        status.textContent = 'File non valido: carica una foto o immagine.';
+        return;
+      }
+
+      preview.src = URL.createObjectURL(file);
+      previewWrap.style.display = 'block';
+      caption.textContent = `${file.name} · ${Math.round(file.size / 1024)} KB`;
+      status.textContent = 'Immagine pronta. Ora scegli intento e domanda.';
+    }
 
     async function readOracle() {
       const file = document.getElementById('image').files[0];
