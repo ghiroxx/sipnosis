@@ -168,7 +168,13 @@
       const history = getHistory();
       const panel = document.getElementById('historyPanel');
       const list = document.getElementById('historyList');
-      if (!history.length) { panel.style.display = 'none'; return; }
+      const patterns = document.getElementById('patternList');
+      if (!history.length) {
+        list.innerHTML = '';
+        patterns.innerHTML = '';
+        panel.style.display = 'none';
+        return;
+      }
       panel.style.display = 'grid';
       renderPatterns(history);
       list.innerHTML = history.map((item, index) => `
@@ -200,7 +206,7 @@
     }
 
     function topEntry(counts) {
-      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
       return entries[0] || null;
     }
 
