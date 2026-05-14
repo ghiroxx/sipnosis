@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cognitive Bridge — Clarify</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0d0d0d;
+      color: #f2f2f2;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+    main {
+      width: min(820px, 100%);
+      background: #161616;
+      border: 1px solid #2d2d2d;
+      border-radius: 24px;
+      padding: 32px;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2.5rem;
+    }
+    p {
+      color: #c7c7c7;
+      line-height: 1.6;
+    }
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid #383838;
+      background: #101010;
+      color: #f2f2f2;
+      resize: vertical;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: bold;
+      background: #f2f2f2;
+      color: #111;
+      cursor: pointer;
+    }
+    .result {
+      display: none;
+      margin-top: 28px;
+      border: 1px solid #333;
+      border-radius: 18px;
+      padding: 20px;
+      background: #121212;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .label {
+      font-size: 0.8rem;
+      color: #9a9a9a;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Cognitive Bridge</h1>
+    <p>
+      Paste a confusing email, instruction, form, or process.
+      Cognitive Bridge converts it into a calm 3-step execution plan.
+    </p>
+
+    <textarea id="input" placeholder="Paste confusing email, instructions, policy, or process here..."></textarea>
+
+    <button onclick="simplify()">Simplify</button>
+
+    <div class="result" id="result">
+      <div class="section">
+        <div class="label">Goal</div>
+        <div id="goal"></div>
+      </div>
+
+      <div class="section">
+        <div class="label">Next 3 Steps</div>
+        <ol id="steps"></ol>
+      </div>
+
+      <div class="section">
+        <div class="label">Ready Message</div>
+        <div id="message"></div>
+      </div>
+
+      <div class="section">
+        <div class="label">Risk Level</div>
+        <div id="risk">Low</div>
+      </div>
+
+      <div class="section">
+        <div class="label">Needs Approval</div>
+        <div id="approval">Yes</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function simplify() {
+      const input = document.getElementById('input').value.trim();
+
+      if (!input) {
+        alert('Paste some text first.');
+        return;
+      }
+
+      document.getElementById('goal').innerText = 'Understand and complete the requested action clearly and safely.';
+
+      document.getElementById('steps').innerHTML = `
+        <li>Identify the main request or problem.</li>
+        <li>Respond only to the essential action required.</li>
+        <li>Wait for confirmation before taking further action.</li>
+      `;
+
+      document.getElementById('message').innerText =
+        'Hello, I reviewed your request and I am proceeding with the required next step. Please confirm if any additional information is needed.';
+
+      document.getElementById('result').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
