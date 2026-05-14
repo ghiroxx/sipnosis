@@ -6,191 +6,75 @@
   <meta name="description" content="SipnoSis - L'oracolo nella tua tazza. Interpreta simbolicamente macchie di caffè e tè." />
   <meta name="theme-color" content="#1a1a1a" />
   <title>SipnoSis — L'Oracolo nella Tua Tazza</title>
-  <script>
-    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-  </script>
+  <script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
   <script defer src="/_vercel/insights/script.js"></script>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: radial-gradient(circle at top, #2a2414 0%, #111 45%, #050505 100%);
-      color: #e6d3a3;
-      font-family: Georgia, 'Times New Roman', serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-    main {
-      width: min(920px, 100%);
-      border: 1px solid rgba(212, 175, 55, 0.35);
-      border-radius: 28px;
-      padding: clamp(24px, 5vw, 56px);
-      background: rgba(0, 0, 0, 0.45);
-      box-shadow: 0 0 70px rgba(212, 175, 55, 0.14);
-      text-align: center;
-    }
-    .sigil {
-      width: 150px;
-      height: 150px;
-      border: 3px solid #d4af37;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      margin: 0 auto 28px;
-      font-size: 64px;
-      box-shadow: 0 0 32px rgba(212, 175, 55, 0.3), inset 0 0 30px rgba(212, 175, 55, 0.08);
-    }
-    h1 {
-      color: #d4af37;
-      font-size: clamp(2.3rem, 7vw, 4.6rem);
-      line-height: 0.95;
-      margin: 0 0 16px;
-      letter-spacing: -0.04em;
-    }
-    .subtitle {
-      font-size: clamp(1.05rem, 2.5vw, 1.35rem);
-      line-height: 1.55;
-      max-width: 720px;
-      margin: 0 auto 34px;
-    }
-    .panel {
-      display: grid;
-      gap: 18px;
-      max-width: 620px;
-      margin: 0 auto;
-      text-align: left;
-      background: rgba(255, 255, 255, 0.035);
-      border: 1px solid rgba(212, 175, 55, 0.22);
-      border-radius: 22px;
-      padding: 22px;
-    }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #2a2414 0%, #111 45%, #050505 100%); color: #e6d3a3; font-family: Georgia, 'Times New Roman', serif; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    main { width: min(920px, 100%); border: 1px solid rgba(212,175,55,.35); border-radius: 28px; padding: clamp(24px,5vw,56px); background: rgba(0,0,0,.45); box-shadow: 0 0 70px rgba(212,175,55,.14); text-align: center; }
+    .sigil { width: 150px; height: 150px; border: 3px solid #d4af37; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 28px; font-size: 64px; box-shadow: 0 0 32px rgba(212,175,55,.3), inset 0 0 30px rgba(212,175,55,.08); }
+    h1 { color: #d4af37; font-size: clamp(2.3rem,7vw,4.6rem); line-height: .95; margin: 0 0 16px; letter-spacing: -.04em; }
+    .subtitle { font-size: clamp(1.05rem,2.5vw,1.35rem); line-height: 1.55; max-width: 720px; margin: 0 auto 34px; }
+    .panel, .history-panel { display: grid; gap: 18px; max-width: 620px; margin: 0 auto; text-align: left; background: rgba(255,255,255,.035); border: 1px solid rgba(212,175,55,.22); border-radius: 22px; padding: 22px; }
+    .history-panel { margin-top: 26px; display: none; }
     label { color: #d4af37; font-weight: bold; }
-    input, select, textarea, button {
-      width: 100%;
-      border-radius: 14px;
-      border: 1px solid rgba(212, 175, 55, 0.5);
-      background: rgba(0, 0, 0, 0.55);
-      color: #f4e3b2;
-      padding: 13px 14px;
-      font: inherit;
-    }
+    input, select, textarea, button { width: 100%; border-radius: 14px; border: 1px solid rgba(212,175,55,.5); background: rgba(0,0,0,.55); color: #f4e3b2; padding: 13px 14px; font: inherit; }
     textarea { min-height: 88px; resize: vertical; }
-    button {
-      cursor: pointer;
-      background: linear-gradient(135deg, #d4af37, #f0d878);
-      color: #111;
-      font-weight: bold;
-      border: none;
-      margin-top: 6px;
-    }
-    button:disabled { opacity: 0.58; cursor: wait; }
+    button { cursor: pointer; background: linear-gradient(135deg,#d4af37,#f0d878); color: #111; font-weight: bold; border: none; margin-top: 6px; }
+    button.secondary { background: transparent; color: #d4af37; border: 1px solid rgba(212,175,55,.45); }
+    button:disabled { opacity: .58; cursor: wait; }
     button:hover:not(:disabled) { filter: brightness(1.07); }
-    .preview-wrap {
-      display: none;
-      border: 1px solid rgba(212, 175, 55, 0.28);
-      border-radius: 18px;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.32);
-    }
-    .preview-wrap img {
-      display: block;
-      width: 100%;
-      max-height: 320px;
-      object-fit: contain;
-      border-radius: 12px;
-    }
-    .preview-caption {
-      margin-top: 8px;
-      font-size: 0.88rem;
-      color: rgba(230, 211, 163, 0.72);
-      text-align: center;
-    }
-    #response {
-      display: none;
-      margin-top: 26px;
-      padding: 22px;
-      border-radius: 20px;
-      border: 1px solid rgba(212, 175, 55, 0.28);
-      background: rgba(212, 175, 55, 0.08);
-      line-height: 1.7;
-      text-align: left;
-    }
-    .oracle-section {
-      margin-bottom: 18px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid rgba(212, 175, 55, 0.16);
-    }
-    .oracle-section:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-    .oracle-title {
-      color: #d4af37;
-      font-size: 0.92rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 8px;
-    }
-    .small {
-      margin-top: 26px;
-      color: rgba(230, 211, 163, 0.76);
-      font-size: 0.92rem;
-    }
-    .status {
-      display: inline-block;
-      margin-top: 10px;
-      color: rgba(230, 211, 163, 0.78);
-      font-size: 0.9rem;
-    }
+    .preview-wrap { display: none; border: 1px solid rgba(212,175,55,.28); border-radius: 18px; padding: 10px; background: rgba(0,0,0,.32); }
+    .preview-wrap img { display: block; width: 100%; max-height: 320px; object-fit: contain; border-radius: 12px; }
+    .preview-caption, .small, .status { color: rgba(230,211,163,.76); font-size: .92rem; }
+    .preview-caption { margin-top: 8px; text-align: center; }
+    #response { display: none; margin-top: 26px; padding: 22px; border-radius: 20px; border: 1px solid rgba(212,175,55,.28); background: rgba(212,175,55,.08); line-height: 1.7; text-align: left; }
+    .oracle-section { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid rgba(212,175,55,.16); }
+    .oracle-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .oracle-title { color: #d4af37; font-size: .92rem; text-transform: uppercase; letter-spacing: .12em; margin-bottom: 8px; }
+    .small { margin-top: 26px; }
+    .status { display: inline-block; margin-top: 10px; }
+    .history-item { border: 1px solid rgba(212,175,55,.18); border-radius: 16px; padding: 14px; background: rgba(0,0,0,.24); }
+    .history-meta { color: rgba(230,211,163,.68); font-size: .82rem; margin-bottom: 6px; }
+    .history-symbol { color: #d4af37; font-weight: bold; }
   </style>
 </head>
-<body>
+<body onload="renderHistory()">
   <main>
     <div class="sigil" aria-hidden="true">☕</div>
     <h1>SipnoSis</h1>
-    <p class="subtitle">
-      L'oracolo nella tua tazza. Carica una macchia di caffè o tè, scegli un intento e ricevi una lettura simbolica.
-    </p>
+    <p class="subtitle">L'oracolo nella tua tazza. Carica una macchia di caffè o tè, scegli un intento e ricevi una lettura simbolica.</p>
 
     <section class="panel" aria-label="Richiesta oracolare">
       <label for="image">Immagine della macchia</label>
       <input id="image" type="file" accept="image/*" onchange="previewImage()" />
-
-      <div id="previewWrap" class="preview-wrap" aria-live="polite">
-        <img id="imagePreview" alt="Anteprima della macchia caricata" />
-        <div id="previewCaption" class="preview-caption"></div>
-      </div>
+      <div id="previewWrap" class="preview-wrap" aria-live="polite"><img id="imagePreview" alt="Anteprima della macchia caricata" /><div id="previewCaption" class="preview-caption"></div></div>
 
       <label for="intent">Intento</label>
       <select id="intent">
-        <option value="direzione">Direzione</option>
-        <option value="protezione">Protezione</option>
-        <option value="abbondanza">Abbondanza</option>
-        <option value="relazione">Relazione</option>
-        <option value="trasformazione">Trasformazione</option>
+        <option value="direzione">Direzione</option><option value="protezione">Protezione</option><option value="abbondanza">Abbondanza</option><option value="relazione">Relazione</option><option value="trasformazione">Trasformazione</option>
       </select>
 
       <label for="question">Domanda o frase rituale</label>
       <textarea id="question" placeholder="Scrivi qui ciò che vuoi chiedere alla tazza..."></textarea>
-
       <button id="oracleButton" type="button" onclick="readOracle()">Ricevi il responso</button>
       <span id="status" class="status"></span>
     </section>
 
     <article id="response"></article>
 
-    <p class="small">
-      Modalità API automatica attiva. SipnoSis tenta prima la lettura AI serverless e usa fallback simbolico solo se necessario.
-    </p>
+    <section id="historyPanel" class="history-panel" aria-label="Libro dei sorsi">
+      <div class="oracle-title">Libro dei sorsi</div>
+      <div id="historyList"></div>
+      <button class="secondary" type="button" onclick="clearHistory()">Svuota cronologia locale</button>
+    </section>
+
+    <p class="small">Modalità API automatica attiva. Le ultime letture vengono salvate solo su questo dispositivo finché non sarà attivo l'archivio cloud.</p>
   </main>
 
   <script>
     const BACKEND_URL = '/api/oracle';
-
+    const HISTORY_KEY = 'sipnosis_history_v1';
     const readings = {
       direzione: 'La forma indica una soglia: non forzare il passaggio, attraversalo con precisione. Il prossimo gesto deve essere piccolo, concreto, verificabile.',
       protezione: 'Il bordo della macchia agisce come cerchio. Riduci dispersione, conserva energia, proteggi ciò che è ancora in nascita.',
@@ -201,26 +85,14 @@
 
     function previewImage() {
       const file = document.getElementById('image').files[0];
-      const previewWrap = document.getElementById('previewWrap');
+      const wrap = document.getElementById('previewWrap');
       const preview = document.getElementById('imagePreview');
       const caption = document.getElementById('previewCaption');
       const status = document.getElementById('status');
-
-      if (!file) {
-        previewWrap.style.display = 'none';
-        preview.removeAttribute('src');
-        caption.textContent = '';
-        return;
-      }
-
-      if (!file.type.startsWith('image/')) {
-        previewWrap.style.display = 'none';
-        status.textContent = 'File non valido: carica una foto o immagine.';
-        return;
-      }
-
+      if (!file) { wrap.style.display = 'none'; preview.removeAttribute('src'); caption.textContent = ''; return; }
+      if (!file.type.startsWith('image/')) { wrap.style.display = 'none'; status.textContent = 'File non valido: carica una foto o immagine.'; return; }
       preview.src = URL.createObjectURL(file);
-      previewWrap.style.display = 'block';
+      wrap.style.display = 'block';
       caption.textContent = `${file.name} · ${Math.round(file.size / 1024)} KB`;
       status.textContent = 'Immagine pronta. Ora scegli intento e domanda.';
     }
@@ -231,46 +103,32 @@
       const question = document.getElementById('question').value.trim();
       const button = document.getElementById('oracleButton');
       const status = document.getElementById('status');
-
-      if (!file) {
-        showResponse('<strong>Prima scegli un’immagine.</strong><br>La tazza deve lasciare un’impronta visibile.');
-        return;
-      }
-
-      button.disabled = true;
-      status.textContent = 'Consultazione oracolare in corso...';
-
+      if (!file) { showResponse('<strong>Prima scegli un’immagine.</strong><br>La tazza deve lasciare un’impronta visibile.'); return; }
+      button.disabled = true; status.textContent = 'Consultazione oracolare in corso...';
       try {
         const apiResult = await requestBackendOracle(file, intent, question);
         showBackendReading(apiResult, question);
-        status.textContent = apiResult.vision_enabled
-          ? 'Visione AI attiva.'
-          : 'Oracle engine simbolico attivo.';
+        saveHistory(apiResult, question, file.name);
+        status.textContent = apiResult.vision_enabled ? 'Visione AI attiva. Lettura salvata nel Libro dei sorsi.' : 'Oracle engine simbolico attivo. Lettura salvata nel Libro dei sorsi.';
       } catch (error) {
         console.warn(error);
-        showLocalReading(file, intent, question);
-        status.textContent = 'Fallback simbolico locale attivato.';
-      } finally {
-        button.disabled = false;
-      }
+        const fallback = buildLocalResult(file, intent, question);
+        showBackendReading(fallback, question);
+        saveHistory(fallback, question, file.name);
+        status.textContent = 'Fallback simbolico locale attivato. Lettura salvata nel Libro dei sorsi.';
+      } finally { button.disabled = false; }
     }
 
     async function requestBackendOracle(file, intent, question) {
-      const response = await fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': file.type || 'image/jpeg',
-          'X-Sipnosis-Intent': intent,
-          'X-Sipnosis-Question': encodeURIComponent(question)
-        },
-        body: file
-      });
-
-      if (!response.ok) {
-        throw new Error(`Backend returned ${response.status}`);
-      }
-
+      const response = await fetch(BACKEND_URL, { method: 'POST', headers: { 'Content-Type': file.type || 'image/jpeg', 'X-Sipnosis-Intent': intent, 'X-Sipnosis-Question': encodeURIComponent(question) }, body: file });
+      if (!response.ok) throw new Error(`Backend returned ${response.status}`);
       return response.json();
+    }
+
+    function buildLocalResult(file, intent, question) {
+      const seed = (file.name.length + file.size + intent.length + question.length) % 5;
+      const symbols = ['ankh', 'spirale', 'soglia', 'occhio', 'ruota'];
+      return { success: true, vision_enabled: false, oracle: { symbol: symbols[seed], intent, reading: readings[intent], timestamp: new Date().toISOString() } };
     }
 
     function showBackendReading(result, question) {
@@ -279,100 +137,56 @@
       const visualObservation = vision.visual_observation || vision.observation || oracle.visual_observation;
       const symbolicMotion = vision.symbolic_motion || vision.motion || oracle.symbolic_motion;
       const interpretation = vision.interpretation || oracle.reading;
-
       showResponse(`
-        <div class="oracle-section">
-          <div class="oracle-title">Simbolo rituale</div>
-          <strong>${escapeHtml(vision.symbol || oracle.symbol || 'soglia')}</strong>
-        </div>
-
-        <div class="oracle-section">
-          <div class="oracle-title">Intento</div>
-          ${escapeHtml(oracle.intent || 'direzione')}
-        </div>
-
-        ${visualObservation ? `
-        <div class="oracle-section">
-          <div class="oracle-title">Osservazione visiva</div>
-          ${escapeHtml(visualObservation)}
-        </div>` : ''}
-
-        ${symbolicMotion ? `
-        <div class="oracle-section">
-          <div class="oracle-title">Movimento simbolico</div>
-          ${escapeHtml(symbolicMotion)}
-        </div>` : ''}
-
-        <div class="oracle-section">
-          <div class="oracle-title">Lettura oracolare</div>
-          ${escapeHtml(interpretation || 'La tazza rimane in silenzio.')}
-        </div>
-
-        ${vision.mood ? `
-        <div class="oracle-section">
-          <div class="oracle-title">Atmosfera</div>
-          ${escapeHtml(vision.mood)}
-        </div>` : ''}
-
-        ${oracle.warning ? `
-        <div class="oracle-section">
-          <div class="oracle-title">Avvertimento</div>
-          ${escapeHtml(oracle.warning)}
-        </div>` : ''}
-
-        ${oracle.ritual_gesture ? `
-        <div class="oracle-section">
-          <div class="oracle-title">Gesto rituale</div>
-          ${escapeHtml(oracle.ritual_gesture)}
-        </div>` : ''}
-
-        ${question ? `
-        <div class="oracle-section">
-          <div class="oracle-title">Domanda rituale</div>
-          <em>“${escapeHtml(question)}”</em>
-        </div>` : ''}
+        <div class="oracle-section"><div class="oracle-title">Simbolo rituale</div><strong>${escapeHtml(vision.symbol || oracle.symbol || 'soglia')}</strong></div>
+        <div class="oracle-section"><div class="oracle-title">Intento</div>${escapeHtml(oracle.intent || 'direzione')}</div>
+        ${visualObservation ? `<div class="oracle-section"><div class="oracle-title">Osservazione visiva</div>${escapeHtml(visualObservation)}</div>` : ''}
+        ${symbolicMotion ? `<div class="oracle-section"><div class="oracle-title">Movimento simbolico</div>${escapeHtml(symbolicMotion)}</div>` : ''}
+        <div class="oracle-section"><div class="oracle-title">Lettura oracolare</div>${escapeHtml(interpretation || 'La tazza rimane in silenzio.')}</div>
+        ${vision.mood ? `<div class="oracle-section"><div class="oracle-title">Atmosfera</div>${escapeHtml(vision.mood)}</div>` : ''}
+        ${oracle.warning ? `<div class="oracle-section"><div class="oracle-title">Avvertimento</div>${escapeHtml(oracle.warning)}</div>` : ''}
+        ${oracle.ritual_gesture ? `<div class="oracle-section"><div class="oracle-title">Gesto rituale</div>${escapeHtml(oracle.ritual_gesture)}</div>` : ''}
+        ${question ? `<div class="oracle-section"><div class="oracle-title">Domanda rituale</div><em>“${escapeHtml(question)}”</em></div>` : ''}
       `);
     }
 
-    function showLocalReading(file, intent, question) {
-      const seed = (file.name.length + file.size + intent.length + question.length) % 5;
-      const symbols = ['ankh', 'spirale', 'soglia', 'occhio', 'ruota'];
-
-      showResponse(`
-        <div class="oracle-section">
-          <div class="oracle-title">Simbolo emerso</div>
-          <strong>${symbols[seed]}</strong>
-        </div>
-
-        <div class="oracle-section">
-          <div class="oracle-title">Intento</div>
-          ${escapeHtml(intent)}
-        </div>
-
-        <div class="oracle-section">
-          <div class="oracle-title">Interpretazione</div>
-          ${escapeHtml(readings[intent])}
-        </div>
-
-        ${question ? `
-        <div class="oracle-section">
-          <div class="oracle-title">Frase ascoltata</div>
-          <em>“${escapeHtml(question)}”</em>
-        </div>` : ''}
-      `);
+    function saveHistory(result, question, fileName) {
+      const oracle = result.oracle || {};
+      const vision = result.vision || {};
+      const item = { date: new Date().toISOString(), fileName, question, intent: oracle.intent || 'direzione', symbol: vision.symbol || oracle.symbol || 'soglia', reading: vision.interpretation || oracle.reading || '', ai: Boolean(result.vision_enabled) };
+      const history = getHistory();
+      history.unshift(item);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 12)));
+      renderHistory();
     }
 
-    function showResponse(html) {
-      const response = document.getElementById('response');
-      response.style.display = 'block';
-      response.innerHTML = html;
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch { return []; }
     }
 
-    function escapeHtml(value) {
-      return String(value).replace(/[&<>'"]/g, function (char) {
-        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char];
-      });
+    function renderHistory() {
+      const history = getHistory();
+      const panel = document.getElementById('historyPanel');
+      const list = document.getElementById('historyList');
+      if (!history.length) { panel.style.display = 'none'; return; }
+      panel.style.display = 'grid';
+      list.innerHTML = history.map(item => `
+        <div class="history-item">
+          <div class="history-meta">${escapeHtml(new Date(item.date).toLocaleString())} · ${escapeHtml(item.intent)} · ${item.ai ? 'AI' : 'simbolico'}</div>
+          <div class="history-symbol">${escapeHtml(item.symbol)}</div>
+          <div>${escapeHtml((item.reading || '').slice(0, 260))}${item.reading && item.reading.length > 260 ? '…' : ''}</div>
+          ${item.question ? `<div class="history-meta">Domanda: ${escapeHtml(item.question)}</div>` : ''}
+        </div>`).join('');
     }
+
+    function clearHistory() {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+      document.getElementById('status').textContent = 'Cronologia locale svuotata.';
+    }
+
+    function showResponse(html) { const response = document.getElementById('response'); response.style.display = 'block'; response.innerHTML = html; }
+    function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[c]); }
   </script>
 </body>
 </html>
