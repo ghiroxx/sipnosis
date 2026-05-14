@@ -225,6 +225,9 @@
     function showBackendReading(result, question) {
       const oracle = result.oracle || {};
       const vision = result.vision || {};
+      const visualObservation = vision.visual_observation || vision.observation || oracle.visual_observation;
+      const symbolicMotion = vision.symbolic_motion || vision.motion || oracle.symbolic_motion;
+      const interpretation = vision.interpretation || oracle.reading;
 
       showResponse(`
         <div class="oracle-section">
@@ -237,21 +240,39 @@
           ${escapeHtml(oracle.intent || 'direzione')}
         </div>
 
+        ${visualObservation ? `
+        <div class="oracle-section">
+          <div class="oracle-title">Osservazione visiva</div>
+          ${escapeHtml(visualObservation)}
+        </div>` : ''}
+
+        ${symbolicMotion ? `
+        <div class="oracle-section">
+          <div class="oracle-title">Movimento simbolico</div>
+          ${escapeHtml(symbolicMotion)}
+        </div>` : ''}
+
         <div class="oracle-section">
           <div class="oracle-title">Lettura oracolare</div>
-          ${escapeHtml(oracle.reading || 'La tazza rimane in silenzio.')}
+          ${escapeHtml(interpretation || 'La tazza rimane in silenzio.')}
         </div>
-
-        ${vision.interpretation ? `
-        <div class="oracle-section">
-          <div class="oracle-title">Visione AI</div>
-          ${escapeHtml(vision.interpretation)}
-        </div>` : ''}
 
         ${vision.mood ? `
         <div class="oracle-section">
           <div class="oracle-title">Atmosfera</div>
           ${escapeHtml(vision.mood)}
+        </div>` : ''}
+
+        ${oracle.warning ? `
+        <div class="oracle-section">
+          <div class="oracle-title">Avvertimento</div>
+          ${escapeHtml(oracle.warning)}
+        </div>` : ''}
+
+        ${oracle.ritual_gesture ? `
+        <div class="oracle-section">
+          <div class="oracle-title">Gesto rituale</div>
+          ${escapeHtml(oracle.ritual_gesture)}
         </div>` : ''}
 
         ${question ? `
