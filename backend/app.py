@@ -19,9 +19,21 @@ CORS(app)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
 
+@app.route("/health", methods=["GET"])
+def healthcheck():
+    return jsonify({
+        "status": "ok",
+        "service": "sipnosis-backend",
+        "version": "phase-1-architecture",
+    })
+
+
 @app.route("/ping", methods=["GET"])
 def ping():
-    return jsonify({"status": "ok", "service": "sipnosis-backend"})
+    return jsonify({
+        "status": "ok",
+        "service": "sipnosis-backend",
+    })
 
 
 @app.route("/api/oracle", methods=["POST"])
@@ -39,7 +51,6 @@ def oracle():
     file.save(filepath)
 
     oracle_result = generate_oracle(intent, filename, question)
-
     vision_result = analyze_stain_image(filepath, intent, question)
 
     parsed_vision = None
