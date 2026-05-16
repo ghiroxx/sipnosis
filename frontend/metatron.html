@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SipnoSis Arcana — Metatron Layer</title>
+  <style>
+    body { margin:0; font-family: Georgia, serif; background:#070606; color:#e8d7a2; }
+    .wrap { max-width:980px; margin:0 auto; padding:24px; }
+    h1 { color:#d4af37; margin:0 0 12px; }
+    .grid { display:grid; grid-template-columns: 1.2fr .8fr; gap:18px; }
+    canvas { width:100%; background:radial-gradient(circle,#17120a,#080706); border:1px solid rgba(212,175,55,.3); border-radius:16px; }
+    .panel { border:1px solid rgba(212,175,55,.3); border-radius:16px; padding:14px; background:rgba(255,255,255,.03); display:grid; gap:10px; }
+    input, button, textarea { width:100%; padding:10px; border-radius:10px; border:1px solid rgba(212,175,55,.5); background:#111; color:#f2e2b0; }
+    button { background:linear-gradient(135deg,#d4af37,#f0d878); color:#111; font-weight:bold; border:none; cursor:pointer; }
+    .reading { line-height:1.5; font-size:.95rem; border-top:1px solid rgba(212,175,55,.2); padding-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Metatron Layer · SipnoSis Arcana</h1>
+    <div class="grid">
+      <canvas id="field" width="680" height="680"></canvas>
+      <div class="panel">
+        <label for="question">Domanda rituale</label>
+        <textarea id="question" placeholder="Qual è il movimento giusto per me oggi?"></textarea>
+        <label for="temp">Temperatura simbolica</label>
+        <input id="temp" type="range" min="0" max="100" value="52" />
+        <button onclick="stepField()">Step</button>
+        <button onclick="randomizeNodes()">Random Seed</button>
+        <button onclick="generateReading()">Genera Lettura Arcana</button>
+        <a href="./index.html" style="color:#d4af37">← Torna a SipnoSis</a>
+        <div class="reading" id="reading">Inserisci una domanda e premi “Genera Lettura Arcana”.</div>
+      </div>
+    </div>
+  </div>
+<script>
+const labels = ['CORE','ADD','BIND','FLOW','MEM','FIRE','WATER','AIR','EARTH','SPIRIT','SHADOW','MIRROR','THRESHOLD'];
+const nodes = labels.map((label, i) => ({ label, angle:(Math.PI*2/12)*i, energy:Math.random() }));
+const edges = [[0,1],[0,3],[0,5],[0,7],[0,9],[0,11],[1,4],[3,6],[5,8],[7,10],[9,12],[11,2],[2,6],[4,8],[10,12]];
+const canvas = document.getElementById('field'); const ctx = canvas.getContext('2d');
+function draw() {
+  const c = canvas.width/2, r=240; ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='rgba(212,175,55,.3)'; ctx.lineWidth=1.2;
+  edges.forEach(([a,b])=>{const A=pt(a,c,r),B=pt(b,c,r);ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();});
+  nodes.forEach((n,i)=>{const p=pt(i,c,r);const glow=Math.floor(130+n.energy*125);
+    ctx.fillStyle=`rgba(${glow},${glow-30},80,.95)`; ctx.beginPath(); ctx.arc(p.x,p.y,15+n.energy*7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#f6e7bf'; ctx.font='12px Georgia'; ctx.fillText(n.label,p.x+18,p.y+4);
+  });
+}
+function pt(i,c,r){return {x:c+Math.cos(nodes[i].angle-Math.PI/2)*r,y:c+Math.sin(nodes[i].angle-Math.PI/2)*r};}
+function stepField(){const t=document.getElementById('temp').value/100;nodes.forEach((n,i)=>{const m=nodes[(i+1)%nodes.length].energy;n.energy=(n.energy*(1-t)+m*t+Math.random()*0.06)%1;});draw();}
+function randomizeNodes(){nodes.forEach(n=>n.energy=Math.random());draw();}
+function dominantNode(){return [...nodes].sort((a,b)=>b.energy-a.energy)[0];}
+function generateReading(){
+  const q=document.getElementById('question').value.trim();
+  const d=dominantNode(); const t=Number(document.getElementById('temp').value);
+  const mode=t>67?'espansivo':t<33?'conservativo':'equilibrante';
+  const line=`Nodo dominante: ${d.label}. Campo ${mode}. ${d.label==='THRESHOLD'?'È tempo di attraversare una soglia concreta.':'Lavora su micro-azioni ripetute finché il pattern si stabilizza.'}`;
+  document.getElementById('reading').textContent = `${q ? `Domanda: “${q}”. ` : ''}${line}`;
+}
+draw();
+</script>
+</body>
+</html>
