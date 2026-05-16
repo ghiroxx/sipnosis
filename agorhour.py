@@ -1,107 +1,69 @@
-"""AgorHour — single-file Python MVP (backend + minimal frontend + hourly AI + Supabase)
+"""AgorHour — single-file Python MVP (backend + minimal frontend + hourly AI + Supabase)."""
 
-USAGE (one copy-paste):
+import importlib
+import os
+import random
+import re
+import subprocess
+import sys
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional, Tuple
+from zoneinfo import ZoneInfo
 
-1. Save as agorhour.py, then run:  python agorhour.py
-1. Required ENV (export or .env):
-   SUPABASE_URL=…
-   SUPABASE_SERVICE_ROLE_KEY=…     # server key (NOT anon)
-   
-   # EITHER provide direct Postgres URL to auto-create tables (recommended):
-   
-   SUPABASE_DB_URL=postgresql://…  # Project Settings → Database → Connection string
-   
-   # AI (optional but recommended for hourly question generation):
-   
-   OPENAI_API_KEY=sk-…
-   OPENAI_MODEL=gpt-4o-mini          # or gpt-4o, gpt-3.5-turbo, etc.
-   
-   # Security for manual cron trigger:
-   
-   AGORHOUR_CRON_SECRET=some-long-random
-   
-   # Optional:
-   
-   HOST=0.0.0.0
-   PORT=8080
-   TZ=Europe/Rome
 
-WHAT YOU GET:
-
-- FastAPI server with endpoints per spec:
-  /api/session, /api/hour/current, /api/hour/answer, /api/answer/react, /api/hour/top
-  - /api/cron/hourly  (protected; external cron) and built-in scheduler (APScheduler)
-- Supabase persistence (tables auto-created if SUPABASE_DB_URL provided; else skip)
-- Ephemerality: auto-seed one question/hour, purge expired hour data shortly after hour end
-- Working Meter (client & server), Expose confirmation for RED posts
-- Minimal mobile-first UI + PWA (manifest + service worker) using Tailwind CDN + polling
-- No-history rule honored: data wiped after the hour
-
-NOTE:
-
-- Uses Supabase REST with service role; Realtime is approximated by client polling (2s).
-- If you insist on Supabase Realtime channels, wire your Next.js client later; the DB schema matches.
-"""
-
-# — Auto-install missing dependencies (keeps this truly one-paste) —
-
-import importlib, subprocess, sys
 def need(pkg, import_name=None):
     try:
         importlib.import_module(import_name or pkg)
         return False
     except ImportError:
         return True
+
+
 def pip_install(*pkgs):
     subprocess.check_call([sys.executable, "-m", "pip", "install", *pkgs])
 
+
 missing = []
-if need("fastapi"): missing += ["fastapi"]
-if need("uvicorn"): missing += ["uvicorn"]
-if need("python-dotenv","dotenv"): missing += ["python-dotenv"]
-if need("apscheduler"): missing += ["apscheduler"]
-if need("supabase"): missing += ["supabase"]
-if need("psycopg2"): missing += ["psycopg2-binary"]
-if need("openai"): missing += ["openai"]
-if missing: pip_install(*missing)
-
-# — Imports —
-
-import os, re, random
-from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
-from typing import Optional, Dict, Any, Tuple
-
-from fastapi import FastAPI, Request, HTTPException, Body
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
-from fastapi.middleware.cors import CORSMiddleware
-
-from dotenv import load_dotenv
-from apscheduler.schedulers.background import BackgroundScheduler
+if need("fastapi"):
+    missing.append("fastapi")
+if need("uvicorn"):
+    missing.append("uvicorn")
+if need("python-dotenv", "dotenv"):
+    missing.append("python-dotenv")
+if need("apscheduler"):
+    missing.append("apscheduler")
+if need("supabase"):
+    missing.append("supabase")
+if need("psycopg2"):
+    missing.append("psycopg2-binary")
+if need("openai"):
+    missing.append("openai")
+if missing:
+    pip_install(*missing)
 
 import psycopg2
-
-from supabase import create_client, Client
-
-# AI
-
+from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
+from fastapi import Body, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from openai import OpenAI
-
-# — Config / Env —
+from supabase import Client, create_client
 
 load_dotenv()
-HOST = os.getenv("HOST","0.0.0.0")
-PORT = int(os.getenv("PORT","8080"))
-TZ = os.getenv("TZ","Europe/Rome")
+
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "8080"))
+TZ = os.getenv("TZ", "Europe/Rome")
 TZINFO = ZoneInfo(TZ)
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL")  # optional, for DDL
-AGORHOUR_CRON_SECRET = os.getenv("AGORHOUR_CRON_SECRET","change-me")
+SUPABASE_DB_URL = os.getenv("SUPABASE_DB_URL")
+AGORHOUR_CRON_SECRET = os.getenv("AGORHOUR_CRON_SECRET", "change-me")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL","gpt-4o-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
     print("ERROR: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in env.")
@@ -109,8 +71,6 @@ if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 ai_client: Optional[OpenAI] = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
-
-# — Schema (per brief) —
 
 DDL_SQL = """
 create extension if not exists pgcrypto;
@@ -149,11 +109,11 @@ create table if not exists reactions (
     unique (answer_id, session_id)
 );
 
--- Helpful indexes
 create index if not exists idx_hour_questions_hour_key on hour_questions(hour_key);
 create index if not exists idx_answers_hour on answers(hour_id);
 create index if not exists idx_reactions_answer on reactions(answer_id);
 """
+
 
 def run_ddl_if_possible():
     if not SUPABASE_DB_URL:
@@ -166,60 +126,80 @@ def run_ddl_if_possible():
     conn.close()
     print("DDL executed OK.")
 
+
 run_ddl_if_possible()
 
-# — Helpers —
 
 def now_tz() -> datetime:
     return datetime.now(tz=TZINFO)
 
+
 def hour_key_for(dt: datetime) -> str:
-    return dt.astimezone(timezone.utc).strftime("%Y%m%d%H")  # canonical in UTC
+    return dt.astimezone(timezone.utc).strftime("%Y%m%d%H")
+
 
 def hour_window(dt: datetime) -> Tuple[datetime, datetime]:
     start = dt.replace(minute=0, second=0, microsecond=0)
     end = start + timedelta(hours=1)
     return start, end
 
+
 def end_of_hour(dt: datetime) -> datetime:
     _, end = hour_window(dt)
     return end
 
-def score_for_answer(answer_id: str) -> int:
-    likes = supabase.table("reactions").select("id").eq("answer_id", answer_id).eq("kind","LIKE").execute().data
-    unlikes = supabase.table("reactions").select("id").eq("answer_id", answer_id).eq("kind","UNLIKE").execute().data
-    return (len(likes or [])) - (len(unlikes or []))
 
-EMOJI_POOL = ["😶","🫥","🫣","🫡","😏","😐","🙃","😎","🥸","🤖","👻","👽","🐸","🦊","🐼","🐨","🦉","🐺","🦄","🐙"]
+def score_for_answer(answer_id: str) -> int:
+    likes = (
+        supabase.table("reactions")
+        .select("id")
+        .eq("answer_id", answer_id)
+        .eq("kind", "LIKE")
+        .execute()
+        .data
+    )
+    unlikes = (
+        supabase.table("reactions")
+        .select("id")
+        .eq("answer_id", answer_id)
+        .eq("kind", "UNLIKE")
+        .execute()
+        .data
+    )
+    return len(likes or []) - len(unlikes or [])
+
+
+EMOJI_POOL = ["😶", "🫥", "🫣", "🫡", "😏", "😐", "🙃", "😎", "🥸", "🤖", "👻", "👽", "🐸", "🦊", "🐼", "🐨", "🦉", "🐺", "🦄", "🐙"]
+
 
 def avatar_from_seed(seed: int) -> Dict[str, Any]:
     hue = seed % 360
     emoji = EMOJI_POOL[seed % len(EMOJI_POOL)]
     return {"hsl": f"hsl({hue} 70% 50%)", "emoji": emoji}
 
-# — Working Meter (server-side mirror of client logic) —
 
 HARD_RED_PATTERNS = [
     r"\b(kill|murder|rape|lynch|gas|exterminate)\b",
     r"\b(doxx|address|phone|ssn)\b",
-    r"\b(slur1|slur2|slur3)\b",  # placeholder: keep policy list server-side
+    r"\b(slur1|slur2|slur3)\b",
 ]
-MILD_YELLOW_PATTERNS = [
-    r"[A-Z]{5,}",
-    r"[!?.]{3,}",
-    r"\b(damn|hell|crap)\b",
-]
+MILD_YELLOW_PATTERNS = [r"[A-Z]{5,}", r"[!?.]{3,}", r"\b(damn|hell|crap)\b"]
+
+
 def meter_color(text: str) -> str:
     t = text.strip().lower()
-    if not t: return "red"
-    for p in HARD_RED_PATTERNS:
-        if re.search(p, t): return "red"
-    for p in MILD_YELLOW_PATTERNS:
-        if re.search(p, t): return "yellow"
-    if len(text) > 110: return "yellow"
+    if not t:
+        return "red"
+    for pattern in HARD_RED_PATTERNS:
+        if re.search(pattern, t):
+            return "red"
+    for pattern in MILD_YELLOW_PATTERNS:
+        if re.search(pattern, t):
+            return "yellow"
+    if len(text) > 110:
+        return "yellow"
     return "green"
 
-# — AI Question Generator —
 
 SYSTEM_PROMPT = (
     "You are AgorHour's Question Master. Generate ONE concise, open-ended debate question.\n"
@@ -230,24 +210,25 @@ SYSTEM_PROMPT = (
     "- Rotate themes: life, love, food, work, ethics, society, culture, politics (soft), tech, future.\n"
     "- Output ONLY the question."
 )
-THEMES = ["life","love","food","work","ethics","society","culture","politics","tech","future"]
+THEMES = ["life", "love", "food", "work", "ethics", "society", "culture", "politics", "tech", "future"]
+
 
 def ai_generate_question(last_headline: str, next_theme: str) -> str:
     if not ai_client:
-        # Fallback deterministic stock question
         stock = {
-            "life":"Is happiness more comfort or challenge?",
-            "love":"Can long-distance love really last?",
-            "food":"Is fast food killing tradition or saving time?",
-            "work":"Should employers track digital productivity?",
-            "ethics":"Is lying ever the right choice?",
-            "society":"Does anonymity make discourse better?",
-            "culture":"Do memes count as modern art?",
-            "politics":"Do term limits make democracy stronger?",
-            "tech":"Is AI more tool or threat?",
-            "future":"Will humans settle Mars in your lifetime?"
+            "life": "Is happiness more comfort or challenge?",
+            "love": "Can long-distance love really last?",
+            "food": "Is fast food killing tradition or saving time?",
+            "work": "Should employers track digital productivity?",
+            "ethics": "Is lying ever the right choice?",
+            "society": "Does anonymity make discourse better?",
+            "culture": "Do memes count as modern art?",
+            "politics": "Do term limits make democracy stronger?",
+            "tech": "Is AI more tool or threat?",
+            "future": "Will humans settle Mars in your lifetime?",
         }
-        return stock.get(next_theme,"Is disagreement a sign of progress?")
+        return stock.get(next_theme, "Is disagreement a sign of progress?")
+
     user_prompt = (
         f"Generate one question (<120 chars) for this hour.\n"
         f"Recent headline: {last_headline[:180]}\nTheme: {next_theme}"
@@ -255,7 +236,10 @@ def ai_generate_question(last_headline: str, next_theme: str) -> str:
     try:
         resp = ai_client.chat.completions.create(
             model=OPENAI_MODEL,
-            messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_prompt}],
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
             temperature=0.7,
             max_tokens=60,
         )
@@ -264,174 +248,186 @@ def ai_generate_question(last_headline: str, next_theme: str) -> str:
     except Exception:
         return "Is disagreement a sign of progress?"
 
+
 def current_theme_for_hour(dt: datetime) -> str:
-    # rotate deterministically by absolute hour number
     base = int(dt.astimezone(timezone.utc).strftime("%s")) // 3600
     return THEMES[base % len(THEMES)]
 
-# — Hourly lifecycle —
 
-GRACE_SECONDS_AFTER_HOUR = 8  # show "Top Answer" briefly before purge
+GRACE_SECONDS_AFTER_HOUR = 8
+
 
 def ensure_current_hour_question():
     now = now_tz()
     hk = hour_key_for(now)
-    # Do we already have it?
     got = supabase.table("hour_questions").select("*").eq("hour_key", hk).limit(1).execute().data
     if got:
         return got[0]
-    # Create new question
+
     theme = current_theme_for_hour(now)
-    # In production you might fetch real headline here; keep empty or a placeholder
-    headline = "Latest hour headline."
-    q_text = ai_generate_question(headline, theme)
+    q_text = ai_generate_question("Latest hour headline.", theme)
     expires = end_of_hour(now).astimezone(timezone.utc)
-    data = {
-        "hour_key": hk,
-        "text": q_text,
-        "expires_at": expires.isoformat(),
-        "open_mode": True
-    }
+    data = {"hour_key": hk, "text": q_text, "expires_at": expires.isoformat(), "open_mode": True}
     ins = supabase.table("hour_questions").insert(data).execute().data
     return ins[0]
 
+
 def purge_expired():
-    # Purge anything with expires_at < now - small grace
     cutoff = datetime.now(timezone.utc) - timedelta(seconds=GRACE_SECONDS_AFTER_HOUR)
-    # Fetch expired ids for cascade review (answers/reactions have ON DELETE CASCADE)
     expired = supabase.table("hour_questions").select("id").lt("expires_at", cutoff.isoformat()).execute().data or []
     if expired:
         ids = [row["id"] for row in expired]
-        # Delete expired hours → cascades
         supabase.table("hour_questions").delete().in_("id", ids).execute()
+
 
 def hourly_tick():
     ensure_current_hour_question()
     purge_expired()
 
-# Scheduler (runs every 30s so we don't miss exact boundaries even on cheap hosts)
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(hourly_tick, "interval", seconds=30, id="hourly_tick", max_instances=1, coalesce=True)
 scheduler.start()
 
-# — FastAPI app —
-
 app = FastAPI(title="AgorHour")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"]
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# — API Endpoints (per brief) —
 
 @app.post("/api/session")
 def create_or_get_session():
-    # create a new anon session each time (stateless client can store id)
     seed = random.randint(0, 999999)
     ins = supabase.table("anon_sessions").insert({"avatar_seed": seed}).execute().data
-    s = ins[0]
-    s["avatar"] = avatar_from_seed(s["avatar_seed"])
-    return s
+    session = ins[0]
+    session["avatar"] = avatar_from_seed(session["avatar_seed"])
+    return session
+
 
 @app.get("/api/hour/current")
 def current_hour(include_answers: int = 1):
-    h = ensure_current_hour_question()
-    # compute countdown (seconds left in local TZ)
+    hour = ensure_current_hour_question()
     now = now_tz()
     end = end_of_hour(now).astimezone(TZINFO)
     seconds_left = max(0, int((end - now).total_seconds()))
     resp = {
-        "hour": {"id": h["id"], "hour_key": h["hour_key"], "text": h["text"], "expires_at": h["expires_at"], "open_mode": h.get("open_mode", True)},
-        "countdown_seconds": seconds_left
+        "hour": {
+            "id": hour["id"],
+            "hour_key": hour["hour_key"],
+            "text": hour["text"],
+            "expires_at": hour["expires_at"],
+            "open_mode": hour.get("open_mode", True),
+        },
+        "countdown_seconds": seconds_left,
     }
     if include_answers:
-        ans = (supabase.table("answers")
+        answers = (
+            supabase.table("answers")
             .select("id, session_id, text, stance, exposed, created_at")
-            .eq("hour_id", h["id"])
+            .eq("hour_id", hour["id"])
             .order("created_at", desc=False)
-            .execute().data) or []
-        # Annotate with score and avatar
+            .execute()
+            .data
+        ) or []
         out = []
-        for a in ans:
-            sc = score_for_answer(a["id"])
-            sess = supabase.table("anon_sessions").select("avatar_seed").eq("id", a["session_id"]).limit(1).execute().data
-            avatar = avatar_from_seed((sess[0]["avatar_seed"] if sess else 0))
-            a2 = dict(a)
-            a2["score"] = sc
-            a2["avatar"] = None if a["exposed"] else avatar
-            a2["exposed_badge"] = bool(a["exposed"])
-            out.append(a2)
+        for answer in answers:
+            session = (
+                supabase.table("anon_sessions")
+                .select("avatar_seed")
+                .eq("id", answer["session_id"])
+                .limit(1)
+                .execute()
+                .data
+            )
+            avatar = avatar_from_seed(session[0]["avatar_seed"] if session else 0)
+            enriched = dict(answer)
+            enriched["score"] = score_for_answer(answer["id"])
+            enriched["avatar"] = None if answer["exposed"] else avatar
+            enriched["exposed_badge"] = bool(answer["exposed"])
+            out.append(enriched)
         resp["answers"] = out
     return resp
 
+
 @app.post("/api/hour/answer")
 def post_answer(payload: Dict[str, Any] = Body(...)):
-    """
-    payload: { session_id, stance (optional if open_mode=true), text, force_expose=false }
-    """
     session_id = payload.get("session_id")
     text = (payload.get("text") or "").strip()
     stance = payload.get("stance")
     force_expose = bool(payload.get("force_expose", False))
     if not session_id or not text:
         raise HTTPException(400, "Missing session_id or text.")
-    h = ensure_current_hour_question()
-    # one per session per hour
-    already = (supabase.table("answers")
-        .select("id").eq("hour_id", h["id"]).eq("session_id", session_id).limit(1).execute().data)
+
+    hour = ensure_current_hour_question()
+    already = (
+        supabase.table("answers")
+        .select("id")
+        .eq("hour_id", hour["id"])
+        .eq("session_id", session_id)
+        .limit(1)
+        .execute()
+        .data
+    )
     if already:
         raise HTTPException(409, "Already answered this hour.")
-    # stance requirement if open_mode=false
-    if h.get("open_mode", True) is False and stance not in ("AGREE","DISAGREE"):
+    if hour.get("open_mode", True) is False and stance not in ("AGREE", "DISAGREE"):
         raise HTTPException(400, "Stance required.")
-    # meter
+
     color = meter_color(text)
     exposed = False
     if color == "red" and not force_expose:
         return JSONResponse({"ok": False, "meter": "red", "requires_expose": True}, status_code=403)
     if color == "red" and force_expose:
         exposed = True
-    ins = supabase.table("answers").insert({
-        "hour_id": h["id"],
-        "session_id": session_id,
-        "stance": stance,
-        "text": text,
-        "exposed": exposed
-    }).execute().data
+
+    ins = (
+        supabase.table("answers")
+        .insert({"hour_id": hour["id"], "session_id": session_id, "stance": stance, "text": text, "exposed": exposed})
+        .execute()
+        .data
+    )
     return {"ok": True, "answer": ins[0], "meter": color}
+
 
 @app.post("/api/answer/react")
 def react(payload: Dict[str, Any] = Body(...)):
-    """
-    payload: { session_id, answer_id, kind: 'LIKE'|'UNLIKE' }
-    """
     session_id = payload.get("session_id")
     answer_id = payload.get("answer_id")
     kind = payload.get("kind")
-    if kind not in ("LIKE","UNLIKE"):
+    if kind not in ("LIKE", "UNLIKE"):
         raise HTTPException(400, "Invalid reaction kind.")
     if not session_id or not answer_id:
         raise HTTPException(400, "Missing session_id or answer_id.")
-    # remove any existing reaction from same session to this answer, then insert new
-    existing = supabase.table("reactions").select("id").eq("answer_id", answer_id).eq("session_id", session_id).execute().data
+
+    existing = (
+        supabase.table("reactions")
+        .select("id")
+        .eq("answer_id", answer_id)
+        .eq("session_id", session_id)
+        .execute()
+        .data
+    )
     if existing:
         supabase.table("reactions").delete().eq("answer_id", answer_id).eq("session_id", session_id).execute()
     supabase.table("reactions").insert({"answer_id": answer_id, "session_id": session_id, "kind": kind}).execute()
     return {"ok": True, "score": score_for_answer(answer_id)}
 
+
 @app.get("/api/hour/top")
 def top_answer():
-    h = ensure_current_hour_question()
-    ans = (supabase.table("answers")
-        .select("id, text")
-        .eq("hour_id", h["id"]).execute().data) or []
-    if not ans:
+    hour = ensure_current_hour_question()
+    answers = supabase.table("answers").select("id, text").eq("hour_id", hour["id"]).execute().data or []
+    if not answers:
         return {"top": None}
-    scored = [(a["id"], a["text"], score_for_answer(a["id"])) for a in ans]
-    scored.sort(key=lambda x: x[2], reverse=True)
+    scored = [(answer["id"], answer["text"], score_for_answer(answer["id"])) for answer in answers]
+    scored.sort(key=lambda item: item[2], reverse=True)
     best = scored[0]
     return {"top": {"answer_id": best[0], "text": best[1], "score": best[2]}}
+
 
 @app.post("/api/cron/hourly")
 def cron_hourly(req: Request):
@@ -440,10 +436,8 @@ def cron_hourly(req: Request):
     hourly_tick()
     return {"ok": True}
 
-# — Minimal Frontend (PWA) —
 
 INDEX_HTML = """<!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -550,7 +544,6 @@ async function loadCurrent(includeAnswers=1){
   document.getElementById('countdown').textContent = fmtCountdown(data.countdown_seconds);
   document.getElementById('stanceWrap').classList.toggle('hidden', !!data.hour.open_mode);
   if (includeAnswers) renderFeed(data.answers||[]);
-  // If very near hour end, prefetch top once
   if (data.countdown_seconds <= 3) showTopAndWipeSoon();
 }}
 
@@ -598,10 +591,7 @@ async function react(answer_id, kind){
 async function postAnswer(){
   if (alreadyPosted) return;
   const txt = document.getElementById('answer').value.trim();
-  const color = meterColor(txt);
-  const data = {
-    session_id: session.id, text: txt, force_expose: false
-  };
+  const data = {session_id: session.id, text: txt, force_expose: false};
   const stanceEl = document.querySelector('input[name="stance"]:checked');
   if (!document.getElementById('stanceWrap').classList.contains('hidden')) {
     data.stance = stanceEl?.value || null;
@@ -638,13 +628,11 @@ async function showTopAndWipeSoon(){
 }}
 
 function tick(){
-  // pull current & feed frequently (polling)
   loadCurrent(1);
 }}
 
 document.addEventListener('DOMContentLoaded', async ()=>{
   await ensureSession();
-  // UI bindings
   const ta = document.getElementById('answer');
   const submit = document.getElementById('submit');
   const exposeNote = document.getElementById('exposeNote');
@@ -673,7 +661,7 @@ MANIFEST = {
     "display": "standalone",
     "background_color": "#0b0b0c",
     "theme_color": "#0b0b0c",
-    "icons": []
+    "icons": [],
 }
 
 SW_JS = """
@@ -682,24 +670,26 @@ self.addEventListener('activate', e=>self.clients.claim());
 self.addEventListener('fetch', ()=>{});
 """
 
+
 @app.get("/", response_class=HTMLResponse)
 def index():
     return INDEX_HTML
+
 
 @app.get("/manifest.webmanifest", response_class=JSONResponse)
 def manifest():
     return MANIFEST
 
+
 @app.get("/sw.js", response_class=PlainTextResponse)
 def sw():
     return SW_JS
 
-# — Start server —
 
 if __name__ == "__main__":
     print("AgorHour server starting …")
     print(f"Listening on http://{HOST}:{PORT}  (TZ={TZ})")
-    # Prime hour on boot
     hourly_tick()
     import uvicorn
+
     uvicorn.run(app, host=HOST, port=PORT)
