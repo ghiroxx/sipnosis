@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Vercel / deployment
+.vercel/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+build/
+.next/
+out/
+
+# Private keys and credentials
+*.pem
+*.key
+*.p8
+*.p12
+*.crt
+id_rsa
+id_dsa
+credentials.json
+service-account.json
+*_service_account.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
