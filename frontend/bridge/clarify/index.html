@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cognitive Bridge — Clarify</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #07111f; color: #eef2ff; padding: 24px; }
+    main { width: min(920px, 100%); margin: 0 auto; }
+    .panel { border: 1px solid rgba(165,180,252,.26); border-radius: 28px; background: rgba(15,23,42,.92); padding: clamp(22px, 5vw, 48px); box-shadow: 0 25px 70px rgba(0,0,0,.35); }
+    a { color: #c7d2fe; }
+    .eyebrow { color: #a5b4fc; text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; font-weight: 800; }
+    h1 { font-size: clamp(2rem, 6vw, 4rem); margin: 12px 0; letter-spacing: -.05em; }
+    p { color: #cbd5e1; line-height: 1.55; }
+    label { display: block; margin: 20px 0 8px; font-weight: 900; color: #e0e7ff; }
+    textarea, input, button { width: 100%; border-radius: 16px; border: 1px solid rgba(165,180,252,.35); background: rgba(2,6,23,.72); color: #f8fafc; font: inherit; padding: 14px 16px; }
+    textarea { min-height: 260px; resize: vertical; line-height: 1.55; }
+    input { min-height: 52px; }
+    button { margin-top: 20px; cursor: pointer; border: 0; background: #c7d2fe; color: #111827; font-weight: 950; }
+    .hint { font-size: .92rem; color: #94a3b8; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 760px) { .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="panel">
+      <a href="/bridge/">← Cognitive Bridge</a>
+      <div class="eyebrow">Step 1 — paste</div>
+      <h1>Paste the confusing thing.</h1>
+      <p>Use this for emails, service instructions, benefit letters, policies, forms, school/work requests or any message that creates executive overload.</p>
+      <label for="sourceText">Confusing text</label>
+      <textarea id="sourceText" placeholder="Paste the email, form, instruction or message here..."></textarea>
+      <div class="row">
+        <div>
+          <label for="desiredOutcome">Desired outcome optional</label>
+          <input id="desiredOutcome" placeholder="Example: ask for more time, book meeting, reply politely" />
+        </div>
+        <div>
+          <label for="tone">Message tone</label>
+          <input id="tone" placeholder="Calm, firm, professional" value="calm and professional" />
+        </div>
+      </div>
+      <p class="hint">Nothing is sent. The result is saved only in this browser unless you copy it.</p>
+      <button type="button" onclick="buildBridge()">Create 3-step bridge</button>
+    </section>
+  </main>
+  <script>
+    const LATEST_KEY = 'cognitive_bridge_latest_v1';
+    const SAVED_KEY = 'cognitive_bridge_saved_v1';
+    const highRiskWords = ['tribunal','court','legal','solicitor','lawyer','dismissal','eviction','debt','medical','diagnosis','passport','immigration','visa','tax','bank','password','account access','universal credit','benefit','police','deadline','final notice'];
+    const mediumRiskWords = ['invoice','complaint','refund','contract','meeting','manager','landlord','application','appointment','warning','policy','payment'];
+    function buildBridge() {
+      const text = document.getElementById('sourceText').value.trim();
+      const desired = document.getElementById('desiredOutcome').value.trim();
+      const tone = document.getElementById('tone').value.trim() || 'calm and professional';
+      if (!text) { alert('Paste the text first.'); return; }
+      const lower = (text + ' ' + desired).toLowerCase();
+      const highHits = highRiskWords.filter(word => lower.includes(word));
+      const medHits = mediumRiskWords.filter(word => lower.includes(word));
+      const risk = highHits.length ? 'High' : medHits.length ? 'Medium' : 'Low';
+      const needsApproval = risk !== 'Low' || /send|submit|sign|pay|accept|decline|resign|withdraw|appeal/i.test(lower);
+      const goal = inferGoal(text, desired);
+      const steps = inferSteps(text, desired, risk);
+      const readyMessage = draftMessage(text, desired, tone, risk);
+      const result = {
+        createdAt: new Date().toISOString(),
+        sourceText: text,
+        desiredOutcome: desired,
+        tone,
+        goal,
+        steps,
+        readyMessage,
+        risk,
+        needsApproval,
+        explanation: buildExplanation(text, desired, highHits, medHits)
+      };
+      localStorage.setItem(LATEST_KEY, JSON.stringify(result));
+      const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+      saved.unshift(result);
+      localStorage.setItem(SAVED_KEY, JSON.stringify(saved.slice(0, 20)));
+      window.location.href = '/bridge/result/';
+    }
+    function inferGoal(text, desired) {
+      if (desired) return 'Get this outcome: ' + desired;
+      const firstLine = text.split('\n').map(s => s.trim()).filter(Boolean)[0] || text.slice(0, 120);
+      if (/deadline|by \d|before|due/i.test(text)) return 'Understand the deadline and respond without missing the required action.';
+      if (/meeting|call|appointment|schedule/i.test(text)) return 'Confirm what meeting or appointment is needed and respond with availability.';
+      if (/invoice|payment|refund|receipt/i.test(text)) return 'Clarify the money/request issue and ask for the next concrete action.';
+      if (/document|form|upload|attach|evidence/i.test(text)) return 'Identify which document or form is needed and prepare it calmly.';
+      return 'Understand the request and reply with one clear next action. Source clue: "' + firstLine.slice(0, 140) + '"';
+    }
+    function inferSteps(text, desired, risk) {
+      const steps = [];
+      steps.push('Identify the exact request, deadline, and person or organisation responsible.');
+      if (/document|form|upload|attach|evidence/i.test(text)) steps.push('Collect only the required document or answer; do not add extra material yet.');
+      else if (/meeting|call|appointment|schedule/i.test(text)) steps.push('Choose two possible time slots or ask them to propose available times.');
+      else if (/invoice|payment|refund|receipt/i.test(text)) steps.push('Check the amount, date, reference number, and proof before replying.');
+      else steps.push('Write a short reply that asks for clarification or confirms the next action.');
+      steps.push(risk === 'High' ? 'Do not send until reviewed; high-risk wording or consequences are present.' : 'Copy the ready message, check names/dates, then send only if it matches your intention.');
+      return steps.slice(0, 3);
+    }
+    function draftMessage(text, desired, tone, risk) {
+      const ask = desired || 'clarify the next step required from me';
+      const reviewLine = risk === 'High' ? '\n\nBefore I take action, please confirm any deadline, consequence, or required evidence in writing.' : '';
+      return 'Hello,\n\nThank you for your message. I would like to ' + ask + '.\n\nCould you please confirm exactly what you need from me, the deadline, and the best way to provide it?\n\nI will review this and respond with the required information as soon as possible.' + reviewLine + '\n\nKind regards';
+    }
+    function buildExplanation(text, desired, highHits, medHits) {
+      const parts = [];
+      parts.push('The output is limited to one goal and three steps to reduce overload.');
+      if (desired) parts.push('The desired outcome was used as the main goal.');
+      if (highHits.length) parts.push('High risk was selected because the text includes: ' + highHits.join(', ') + '.');
+      else if (medHits.length) parts.push('Medium risk was selected because the text includes: ' + medHits.join(', ') + '.');
+      else parts.push('Low risk was selected because no obvious legal, money, medical, immigration, housing or deadline danger words were detected.');
+      parts.push('This is draft-only. The user must approve before sending or acting.');
+      return parts.join(' ');
+    }
+  </script>
+</body>
+</html>
