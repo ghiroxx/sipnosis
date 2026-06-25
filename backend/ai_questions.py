@@ -1,7 +1,10 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except Exception:  # pragma: no cover - optional runtime dependency
+    OpenAI = None
 
 from backend.config import OPENAI_API_KEY, OPENAI_MODEL
 
@@ -41,9 +44,9 @@ FALLBACK_QUESTIONS = {
     "future": "Will humans settle Mars in your lifetime?",
 }
 
-ai_client: Optional[OpenAI] = None
+ai_client: Optional[object] = None
 
-if OPENAI_API_KEY:
+if OpenAI is not None and OPENAI_API_KEY:
     ai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 
