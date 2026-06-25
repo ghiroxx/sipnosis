@@ -1,111 +1,68 @@
-# ☕ SipnoSis — L'Oracolo nella Tua Tazza
+# SipnoSis
 
-SipnoSis è un portale oracolare interattivo che interpreta simbolicamente le macchie di caffè o tè.
+SipnoSis is a static-first Vercel project for symbolic coffee/tea stain readings, with a small serverless oracle API foundation and a new Cognitive Bridge MVP route.
 
-L'esperienza unisce:
-- simbolismo rituale
-- estetica mistica contemporanea
-- interpretazione assistita da AI
-- interfaccia immersiva nero/oro
+## Live routes
 
----
+- `/` — SipnoSis cup/stain reading interface
+- `/bridge/` — Cognitive Bridge landing page
+- `/bridge/clarify/` — paste confusing text and generate a 3-step action card
+- `/bridge/result/` — view, copy and locally save the latest action card
 
-## 🌐 Portale Live
+## Current deployment structure
 
-Frontend Vercel:
-- https://sipnosis.vercel.app
+The Vercel project can safely use Root Directory:
 
-Repository ufficiale:
-- https://github.com/xes-net/sipnosis
+```text
+frontend
+```
 
----
-
-## 🔮 Esperienza
-
-1. Carica una foto della tua tazza
-2. Scegli un intento rituale
-3. Ricevi una risposta simbolica
-4. Conserva la lettura come traccia personale
-
-Intenti disponibili:
-- Direzione
-- Protezione
-- Abbondanza
-- Relazione
-- Trasformazione
-
----
-
-## 🧱 Stato Attuale del Progetto
-
-### Frontend
-- Hosting: Vercel
-- Interfaccia: HTML/CSS/JS mistico minimale
-- Deploy automatico da GitHub
-
-### Backend (in evoluzione)
-- Flask API
-- Endpoint previsti:
-  - `/api/oracle`
-  - `/api/history`
-- Futuro supporto per AI vision
-
----
-
-## 🛠 Deploy & Struttura
+The expected repository structure is:
 
 ```text
 sipnosis/
 ├── frontend/
 │   ├── index.html
 │   ├── package.json
-│   └── vercel.json
-├── README.md
+│   ├── vercel.json
+│   ├── api/
+│   │   └── oracle.py
+│   └── bridge/
+│       ├── index.html
+│       ├── clarify/
+│       │   └── index.html
+│       └── result/
+│           └── index.html
+├── backend/
+└── README.md
 ```
 
----
+## Build
 
-## 🚀 Avvio Locale
+From `frontend/`:
 
 ```bash
-cd frontend
 pnpm install
 pnpm run build
 ```
 
-Per sviluppo locale semplice:
+The build command creates `dist/`, copies the SipnoSis landing page and copies the Cognitive Bridge static routes.
 
-```bash
-python3 -m http.server 3000
-```
+## Cognitive Bridge MVP
 
----
+Cognitive Bridge turns confusing text into:
 
-## 🧭 Roadmap
+1. Goal
+2. Next 3 steps
+3. Ready message
+4. Risk level
+5. Needs approval flag
+6. Source-based explanation
 
-- [x] Ripristino deploy Vercel
-- [x] Stabilizzazione frontend
-- [ ] Pulizia architettura repository
-- [ ] Backend Flask reale
-- [ ] AI vision per lettura macchie
-- [ ] Archivio rituali utente
-- [ ] Mobile app
+This first MVP is intentionally draft-only. It does not send, submit, sign, pay, automate browsers or act on behalf of the user. High-risk matters are flagged for review.
 
----
+## Notes
 
-## 👁‍🗨 Creatore
-
-Creato da Paride Novellino / xes-net.
-
-SipnoSis esplora il confine tra:
-- intuizione
-- simbolo
-- rituale
-- interfaccia digitale
-
----
-
-## 📜 Nota
-
-Questo repository è in fase di ricostruzione architetturale controllata.
-Alcune componenti storiche o sperimentali potrebbero essere ancora presenti durante la fase di stabilizzazione.
+- SipnoSis AI vision requires `OPENAI_API_KEY` in the correct production Vercel project.
+- Cognitive Bridge currently runs client-side and stores recent cards only in browser localStorage.
+- Browser automation, Supabase persistence and real AI classification should come after the manual-paste MVP is tested with real examples.
