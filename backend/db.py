@@ -1,7 +1,14 @@
 from datetime import datetime, timedelta, timezone
 
-import psycopg2
-from supabase import Client, create_client
+try:
+    import psycopg2
+except Exception:  # pragma: no cover - optional runtime dependency
+    psycopg2 = None
+
+try:
+    from supabase import create_client
+except Exception:  # pragma: no cover - optional runtime dependency
+    create_client = None
 
 from backend.config import (
     SUPABASE_DB_URL,
@@ -11,19 +18,30 @@ from backend.config import (
 
 GRACE_SECONDS_AFTER_HOUR = 8
 
-supabase: Client = create_client(
-    SUPABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY,
-)
+_supabase = None
 
 
-def get_supabase_client() -> Client:
-    return supabase
+def get_supabase_client():
+    global _supabase
+
+    if _supabase is not None:
+        return _supabase
+
+    if not create_client or not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        return None
+
+    _supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    return _supabase
 
 
 def test_database_connection() -> bool:
+    client = get_supabase_client()
+
+    if client is None:
+        return False
+
     try:
-        supabase.table("hour_questions").select("id").limit(1).execute()
+        client.table("hour_questions").select("id").limit(1).execute()
         return True
     except Exception:
         return False
@@ -34,18 +52,27 @@ def run_simple_connection_check():
         print("INFO: SUPABASE_DB_URL not configured.")
         return
 
+    if psycopg2 is None:
+        print("INFO: psycopg2 not installed; skipping direct DB check.")
+        return
+
     conn = psycopg2.connect(SUPABASE_DB_URL)
     conn.close()
     print("Database connection OK.")
 
 
 def purge_expired_questions():
+    client = get_supabase_client()
+
+    if client is None:
+        return
+
     cutoff = datetime.now(timezone.utc) - timedelta(
         seconds=GRACE_SECONDS_AFTER_HOUR
     )
 
     expired = (
-        supabase.table("hour_questions")
+        client.table("hour_questions")
         .select("id")
         .lt("expires_at", cutoff.isoformat())
         .execute()
@@ -57,7 +84,7 @@ def purge_expired_questions():
         ids = [row["id"] for row in expired]
 
         (
-            supabase.table("hour_questions")
+            client.table("hour_questions")
             .delete()
             .in_("id", ids)
             .execute()
