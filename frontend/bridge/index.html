@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Cognitive Bridge turns confusing emails, forms and instructions into one goal, three steps and a ready message." />
+  <title>Cognitive Bridge — 3-Step Execution Layer</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: radial-gradient(circle at top left, #28344f 0%, #111827 38%, #050816 100%); color: #eef2ff; padding: 24px; }
+    main { width: min(980px, 100%); margin: 0 auto; }
+    .shell { border: 1px solid rgba(165, 180, 252, .28); border-radius: 30px; background: rgba(15, 23, 42, .72); box-shadow: 0 30px 90px rgba(0,0,0,.35); overflow: hidden; }
+    header { padding: clamp(28px, 6vw, 64px); }
+    .eyebrow { color: #a5b4fc; text-transform: uppercase; letter-spacing: .14em; font-size: .78rem; font-weight: 800; }
+    h1 { font-size: clamp(2.4rem, 7vw, 5.4rem); line-height: .92; margin: 16px 0; letter-spacing: -.06em; }
+    .lead { max-width: 760px; font-size: clamp(1.05rem, 2vw, 1.35rem); line-height: 1.6; color: #cbd5e1; }
+    .cta { display: inline-flex; margin-top: 28px; padding: 15px 22px; border-radius: 999px; color: #111827; background: #c7d2fe; text-decoration: none; font-weight: 900; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(165,180,252,.18); }
+    .card { padding: 26px; background: rgba(15,23,42,.94); min-height: 190px; }
+    .number { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(199,210,254,.16); color: #c7d2fe; font-weight: 900; margin-bottom: 16px; }
+    h2 { margin: 0 0 10px; font-size: 1.15rem; }
+    p { margin: 0; color: #cbd5e1; line-height: 1.55; }
+    .safety { padding: 26px; border-top: 1px solid rgba(165,180,252,.18); color: #cbd5e1; }
+    .safety strong { color: #fff; }
+    nav { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; }
+    nav a { color: #c7d2fe; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="shell">
+      <header>
+        <div class="eyebrow">Neuro-inclusive MVP</div>
+        <h1>Cognitive Bridge</h1>
+        <p class="lead">Paste a confusing email, instruction, policy or form. The bridge turns it into one clear goal, maximum three next steps, a ready-to-send message, a risk level and an approval flag.</p>
+        <a class="cta" href="/bridge/clarify/">Start the 3-step bridge</a>
+        <nav><a href="/">Back to SipnoSis</a><a href="/bridge/result/">Open last result</a></nav>
+      </header>
+      <section class="grid" aria-label="How it works">
+        <article class="card"><div class="number">1</div><h2>Paste the mess</h2><p>No perfect wording needed. Drop the email, form text, policy or instruction exactly as received.</p></article>
+        <article class="card"><div class="number">2</div><h2>Get the bridge</h2><p>The tool extracts the goal, reduces action to three steps and drafts a calm message.</p></article>
+        <article class="card"><div class="number">3</div><h2>Approve before action</h2><p>MVP is draft-only. It does not send, submit or execute anything without the user.</p></article>
+      </section>
+      <section class="safety"><strong>Safety rule:</strong> high-risk tasks are flagged. Legal, medical, financial, employment, housing, immigration or account-access matters should be reviewed before sending or acting.</section>
+    </div>
+  </main>
+</body>
+</html>
