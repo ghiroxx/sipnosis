@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cognitive Bridge — Result</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #07111f; color: #eef2ff; padding: 24px; }
+    main { width: min(980px, 100%); margin: 0 auto; }
+    .panel { border: 1px solid rgba(165,180,252,.26); border-radius: 28px; background: rgba(15,23,42,.92); padding: clamp(22px, 5vw, 48px); box-shadow: 0 25px 70px rgba(0,0,0,.35); }
+    a { color: #c7d2fe; }
+    h1 { font-size: clamp(2rem, 6vw, 4rem); margin: 12px 0; letter-spacing: -.05em; }
+    p, li { color: #cbd5e1; line-height: 1.55; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .card { border: 1px solid rgba(165,180,252,.2); border-radius: 20px; padding: 18px; background: rgba(2,6,23,.45); }
+    .wide { grid-column: 1 / -1; }
+    .label { color: #a5b4fc; text-transform: uppercase; letter-spacing: .12em; font-size: .76rem; font-weight: 900; margin-bottom: 8px; }
+    .risk { display: inline-flex; padding: 8px 12px; border-radius: 999px; font-weight: 950; background: rgba(199,210,254,.16); }
+    pre { white-space: pre-wrap; word-break: break-word; color: #f8fafc; font: inherit; line-height: 1.6; margin: 0; }
+    button { border-radius: 14px; border: 0; background: #c7d2fe; color: #111827; font: inherit; font-weight: 950; padding: 13px 16px; cursor: pointer; margin-right: 10px; margin-top: 10px; }
+    button.secondary { background: transparent; color: #c7d2fe; border: 1px solid rgba(165,180,252,.35); }
+    .saved { margin-top: 20px; display: grid; gap: 12px; }
+    .saved-item { border: 1px solid rgba(165,180,252,.16); border-radius: 16px; padding: 14px; color: #cbd5e1; }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body onload="renderResult()">
+  <main>
+    <section class="panel">
+      <a href="/bridge/clarify/">← New bridge</a>
+      <h1>3-step action card</h1>
+      <div id="empty" style="display:none"><p>No result yet. Start by pasting a confusing message.</p><a href="/bridge/clarify/">Create a result</a></div>
+      <div id="result" class="grid" aria-live="polite"></div>
+      <div id="actions" style="display:none">
+        <button onclick="copyMessage()">Copy ready message</button>
+        <button class="secondary" onclick="copyFullCard()">Copy full card</button>
+      </div>
+      <section class="saved">
+        <div class="label">Saved in this browser</div>
+        <div id="savedList"></div>
+      </section>
+    </section>
+  </main>
+  <script>
+    const LATEST_KEY = 'cognitive_bridge_latest_v1';
+    const SAVED_KEY = 'cognitive_bridge_saved_v1';
+    let latest = null;
+    function renderResult() {
+      latest = readJson(LATEST_KEY);
+      const resultEl = document.getElementById('result');
+      const emptyEl = document.getElementById('empty');
+      const actionsEl = document.getElementById('actions');
+      if (!latest) { emptyEl.style.display = 'block'; resultEl.style.display = 'none'; renderSaved(); return; }
+      actionsEl.style.display = 'block';
+      resultEl.innerHTML = `
+        <article class="card wide"><div class="label">Goal</div><p>${escapeHtml(latest.goal)}</p></article>
+        <article class="card"><div class="label">Risk level</div><span class="risk">${escapeHtml(latest.risk)}</span></article>
+        <article class="card"><div class="label">Needs approval</div><p>${latest.needsApproval ? 'Yes — review before sending or acting.' : 'No obvious approval blocker detected, but still check names and dates.'}</p></article>
+        <article class="card wide"><div class="label">Next 3 steps</div><ol>${latest.steps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol></article>
+        <article class="card wide"><div class="label">Ready message</div><pre id="readyMessage">${escapeHtml(latest.readyMessage)}</pre></article>
+        <article class="card wide"><div class="label">Source-based explanation</div><p>${escapeHtml(latest.explanation)}</p></article>
+      `;
+      renderSaved();
+    }
+    function renderSaved() {
+      const saved = readJson(SAVED_KEY) || [];
+      const box = document.getElementById('savedList');
+      if (!saved.length) { box.innerHTML = '<p>No saved cards yet.</p>'; return; }
+      box.innerHTML = saved.slice(0, 5).map((item, index) => `<div class="saved-item"><strong>${index + 1}. ${escapeHtml(item.goal).slice(0, 120)}</strong><br><small>${new Date(item.createdAt).toLocaleString()} · Risk: ${escapeHtml(item.risk)}</small></div>`).join('');
+    }
+    function readJson(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; } }
+    async function copyMessage() {
+      if (!latest) return;
+      await navigator.clipboard.writeText(latest.readyMessage);
+      alert('Ready message copied.');
+    }
+    async function copyFullCard() {
+      if (!latest) return;
+      const text = `GOAL\n${latest.goal}\n\nNEXT 3 STEPS\n${latest.steps.map((s,i)=>`${i+1}. ${s}`).join('\n')}\n\nREADY MESSAGE\n${latest.readyMessage}\n\nRISK LEVEL\n${latest.risk}\n\nNEEDS APPROVAL\n${latest.needsApproval ? 'Yes' : 'No'}\n\nEXPLANATION\n${latest.explanation}`;
+      await navigator.clipboard.writeText(text);
+      alert('Full card copied.');
+    }
+    function escapeHtml(value) { return String(value || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+  </script>
+</body>
+</html>
